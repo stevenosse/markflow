@@ -8,7 +8,7 @@
 PRODUCT_NAME = markflow
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.markflow
+PRODUCT_BUNDLE_IDENTIFIER = com.stevenosse.markflow
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2025 com.example. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2025 com.stevenosse. All rights reserved.

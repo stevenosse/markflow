@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:markflow/src/core/routing/app_router.dart';
 import 'package:markflow/src/core/theme/dimens.dart';
 import 'package:markflow/src/datasource/models/project.dart';
 import 'package:markflow/src/features/projects/logic/project_list/project_list_notifier.dart';
@@ -44,6 +45,13 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.surface,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => context.router.push(SettingsRoute()),
+            tooltip: 'Settings',
+          ),
+        ],
       ),
       body: ValueListenableBuilder<ProjectListState>(
         valueListenable: context.read<ProjectListNotifier>(),
@@ -179,10 +187,12 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
             return ProjectCard(
               project: project,
               onTap: () => _openProject(context, project),
-              onFavoriteToggle: () => context.read<ProjectListNotifier>().toggleFavorite(project),
+              onFavoriteToggle: () =>
+                  context.read<ProjectListNotifier>().toggleFavorite(project),
               onDelete: () => _showDeleteProjectDialog(context, project),
-              onRename: (newName) =>
-                  context.read<ProjectListNotifier>().renameProject(project, newName),
+              onRename: (newName) => context
+                  .read<ProjectListNotifier>()
+                  .renameProject(project, newName),
             );
           },
         );
@@ -207,10 +217,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     context.read<ProjectListNotifier>().updateLastOpened(project);
 
     // Navigate to project editor
-    Navigator.of(context).pushNamed(
-      '/project-editor',
-      arguments: project,
-    );
+    context.router.push(ProjectEditorRoute(project: project));
   }
 
   void _showCreateProjectDialog(BuildContext context) {
@@ -250,11 +257,10 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
       ),
     ).then((name) async {
       if (name != null && name.isNotEmpty && context.mounted) {
-        // Default path is the project name in the documents directory
+        // Path will be determined by PathConfigService
         final project = await context.read<ProjectListNotifier>().createProject(
-          name: name,
-          path: '/documents/$name',
-        );
+              name: name,
+            );
         if (project != null && context.mounted) {
           _openProject(context, project);
         }

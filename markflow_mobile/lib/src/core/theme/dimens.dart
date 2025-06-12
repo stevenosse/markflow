@@ -86,9 +86,16 @@ class Dimens {
   static const double gitFileItemHeight = 32.0;
 
   // Project Cards
-  static const double projectCardHeight = 120.0;
+  static const double projectCardHeight = 150.0;
   static const double projectCardWidth = 280.0;
   static const double projectCardImageHeight = 60.0;
+  
+  // Desktop specific
+  static const double desktopMinWindowWidth = 1024.0;
+  static const double desktopMinWindowHeight = 768.0;
+  static const double desktopSidebarWidth = 320.0;
+  static const double desktopToolbarHeight = 64.0;
+  static const double desktopContentMaxWidth = 1200.0;
 
   // Search
   static const double searchBarHeight = 40.0;
@@ -114,7 +121,8 @@ class Dimens {
   static const double snackbarMargin = 16.0;
 
   // Breakpoints
-  static const double mobileBreakpoint = 600.0;
-  static const double tabletBreakpoint = 900.0;
-  static const double desktopBreakpoint = 1200.0;
+  static const double mobileBreakpoint = 480.0;
+  static const double tabletBreakpoint = 768.0;
+  static const double desktopBreakpoint = 1024.0;
+  static const double largeDesktopBreakpoint = 1440.0;
 }

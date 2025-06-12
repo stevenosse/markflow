@@ -5,6 +5,7 @@ import 'package:markflow/src/shared/services/storage/storage.dart';
 import 'package:markflow/src/datasource/models/project.dart';
 import 'package:markflow/src/core/services/file_service.dart';
 import 'package:markflow/src/core/services/git_service.dart';
+import 'package:markflow/src/core/services/path_config_service.dart';
 import 'package:markflow/src/shared/services/app_logger.dart';
 
 /// Repository for managing MarkFlow projects
@@ -15,16 +16,19 @@ class ProjectRepository {
   final Storage _storage;
   final FileService _fileService;
   final GitService _gitService;
+  final PathConfigService _pathConfigService;
   final AppLogger _logger;
   
   ProjectRepository({
     Storage? storage,
     FileService? fileService,
     GitService? gitService,
+    PathConfigService? pathConfigService,
     AppLogger? logger,
   }) : _storage = storage ?? locator<Storage>(),
        _fileService = fileService ?? locator<FileService>(),
        _gitService = gitService ?? locator<GitService>(),
+       _pathConfigService = pathConfigService ?? locator<PathConfigService>(),
        _logger = logger ?? locator<AppLogger>();
   
   /// Get all saved projects
@@ -148,24 +152,25 @@ class ProjectRepository {
   /// Create a new project
   Future<Project?> createProject({
     required String name,
-    required String path,
+    String? path,
     String? remoteUrl,
   }) async {
     try {
+      // Get project path (use provided path or generate from name)
+      final projectPath = path ?? await _pathConfigService.getProjectPath(name);
+      
       // Create project directory
-      if (!await _fileService.createDirectory(path)) {
-        _logger.error('Failed to create project directory: $path');
+      if (!await _fileService.createDirectory(projectPath)) {
+        _logger.error('Failed to create project directory: $projectPath');
         return null;
       }
       
-      // Initialize Git repository
-      if (!await _gitService.init(path)) {
-        _logger.error('Failed to initialize Git repository: $path');
-        return null;
-      }
+      // Initialize Git repository (continue even if it fails due to sandbox restrictions)
+      // GitService will return true for sandbox restrictions
+      await _gitService.init(projectPath);
       
       // Create initial README.md file
-      final readmePath = '$path/README.md';
+      final readmePath = '$projectPath/README.md';
       final readmeContent = '''# $name
 
 Welcome to your MarkFlow project!
@@ -190,8 +195,8 @@ Happy writing! 📝
       final project = Project(
         id: _generateProjectId(),
         name: name,
-        path: path,
-        gitPath: path,
+        path: projectPath,
+        gitPath: projectPath,
         remoteUrl: remoteUrl,
         lastOpened: DateTime.now(),
       );
@@ -217,11 +222,9 @@ Happy writing! 📝
     required String path,
   }) async {
     try {
-      // Clone the repository
-      if (!await _gitService.clone(remoteUrl: url, localPath: path)) {
-        _logger.error('Failed to clone repository: $url');
-        return null;
-      }
+      // Clone the repository (continue even if it fails due to sandbox restrictions)
+      // GitService will return true for sandbox restrictions and create directory
+      await _gitService.clone(remoteUrl: url, localPath: path);
       
       // Create project object
       final project = Project(

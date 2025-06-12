@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:markflow/src/core/theme/dimens.dart';
 import 'package:markflow/src/datasource/models/project.dart';
+import 'package:markflow/src/shared/components/atoms/basic_card.dart';
 import 'package:path/path.dart' as path;
 
 class ProjectCard extends StatelessWidget {
@@ -21,67 +22,94 @@ class ProjectCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: Dimens.cardElevation,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(Dimens.cardRadius),
-      ),
+    return BasicCard(
+      childPadding: EdgeInsets.all(Dimens.spacing),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(Dimens.cardRadius),
         child: Container(
           height: Dimens.projectCardHeight,
-          padding: const EdgeInsets.all(Dimens.cardPadding),
+          padding: const EdgeInsets.all(Dimens.cardMargin),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(context),
+              const _ProjectHeader(),
               const SizedBox(height: Dimens.halfSpacing),
-              _buildTitle(context),
+              const _ProjectTitle(),
               const SizedBox(height: Dimens.minSpacing),
-              _buildPath(context),
-              const Spacer(),
-              _buildFooter(context),
+              const _ProjectPath(),
+              const SizedBox(height: Dimens.minSpacing),
+              const _ProjectFooter(),
             ],
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildHeader(BuildContext context) {
+class _ProjectHeader extends StatelessWidget {
+  const _ProjectHeader();
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       children: [
-        _buildProjectIcon(context),
+        const _ProjectIcon(),
         const Spacer(),
-        _buildFavoriteButton(context),
-        _buildMenuButton(context),
+        const _FavoriteButton(),
+        const _MenuButton(),
       ],
     );
   }
+}
 
-  Widget _buildProjectIcon(BuildContext context) {
+class _ProjectIcon extends StatelessWidget {
+  const _ProjectIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    final project = context.findAncestorWidgetOfExactType<ProjectCard>()!.project;
+    final hash = project.name.hashCode;
+    final colors = [
+      Theme.of(context).colorScheme.primary,
+      Theme.of(context).colorScheme.secondary,
+      Theme.of(context).colorScheme.tertiary,
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.purple,
+      Colors.teal,
+    ];
+    final color = colors[hash.abs() % colors.length];
+
     return Container(
       width: Dimens.iconSizeL,
       height: Dimens.iconSizeL,
       decoration: BoxDecoration(
-        color: _getProjectColor(context),
+        color: color,
         borderRadius: BorderRadius.circular(Dimens.buttonRadius),
       ),
-      child: Icon(
-        _getProjectIcon(),
+      child: const Icon(
+        Icons.folder,
         color: Colors.white,
         size: Dimens.iconSizeM,
       ),
     );
   }
+}
 
-  Widget _buildFavoriteButton(BuildContext context) {
+class _FavoriteButton extends StatelessWidget {
+  const _FavoriteButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final projectCard = context.findAncestorWidgetOfExactType<ProjectCard>()!;
     return IconButton(
-      onPressed: onFavoriteToggle,
+      onPressed: projectCard.onFavoriteToggle,
       icon: Icon(
-        project.isFavorite ? Icons.favorite : Icons.favorite_border,
-        color: project.isFavorite
+        projectCard.project.isFavorite ? Icons.favorite : Icons.favorite_border,
+        color: projectCard.project.isFavorite
             ? Theme.of(context).colorScheme.error
             : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
         size: Dimens.iconSizeM,
@@ -93,8 +121,14 @@ class ProjectCard extends StatelessWidget {
       padding: EdgeInsets.zero,
     );
   }
+}
 
-  Widget _buildMenuButton(BuildContext context) {
+class _MenuButton extends StatelessWidget {
+  const _MenuButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final projectCard = context.findAncestorWidgetOfExactType<ProjectCard>()!;
     return PopupMenuButton<String>(
       onSelected: (value) {
         switch (value) {
@@ -102,7 +136,7 @@ class ProjectCard extends StatelessWidget {
             _showRenameDialog(context);
             break;
           case 'delete':
-            onDelete();
+            projectCard.onDelete();
             break;
         }
       },
@@ -141,7 +175,59 @@ class ProjectCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTitle(BuildContext context) {
+  void _showRenameDialog(BuildContext context) {
+    final projectCard = context.findAncestorWidgetOfExactType<ProjectCard>()!;
+    final controller = TextEditingController(text: projectCard.project.name);
+    
+    showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Rename Project'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: 'Project Name',
+            border: OutlineInputBorder(),
+          ),
+          autofocus: true,
+          onSubmitted: (value) {
+            if (value.trim().isNotEmpty) {
+              Navigator.of(context).pop(value.trim());
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              final newName = controller.text.trim();
+              if (newName.isNotEmpty && newName != projectCard.project.name) {
+                Navigator.of(context).pop(newName);
+              } else {
+                Navigator.of(context).pop();
+              }
+            },
+            child: const Text('Rename'),
+          ),
+        ],
+      ),
+    ).then((newName) {
+      if (newName != null && newName.isNotEmpty && newName != projectCard.project.name) {
+        projectCard.onRename(newName);
+      }
+    });
+  }
+}
+
+class _ProjectTitle extends StatelessWidget {
+  const _ProjectTitle();
+
+  @override
+  Widget build(BuildContext context) {
+    final project = context.findAncestorWidgetOfExactType<ProjectCard>()!.project;
     return Text(
       project.name,
       style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -151,32 +237,57 @@ class ProjectCard extends StatelessWidget {
       overflow: TextOverflow.ellipsis,
     );
   }
+}
 
-  Widget _buildPath(BuildContext context) {
-    final displayPath = _getDisplayPath();
+class _ProjectPath extends StatelessWidget {
+  const _ProjectPath();
+
+  @override
+  Widget build(BuildContext context) {
+    final project = context.findAncestorWidgetOfExactType<ProjectCard>()!.project;
+    String displayPath;
+    try {
+      final homePath = path.dirname(path.dirname(project.path));
+      if (project.path.startsWith(homePath)) {
+        displayPath = '~/${path.relative(project.path, from: homePath)}';
+      } else {
+        displayPath = project.path;
+      }
+    } catch (e) {
+      displayPath = project.path;
+    }
 
     return Text(
       displayPath,
       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color:
-                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
           ),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
   }
+}
 
-  Widget _buildFooter(BuildContext context) {
-    return Row(
+class _ProjectFooter extends StatelessWidget {
+  const _ProjectFooter();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
       children: [
-        _buildGitIndicator(context),
-        const Spacer(),
-        _buildLastOpenedText(context),
+        _GitIndicator(),
+        Spacer(),
+        _LastOpenedText(),
       ],
     );
   }
+}
 
-  Widget _buildGitIndicator(BuildContext context) {
+class _GitIndicator extends StatelessWidget {
+  const _GitIndicator();
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: Dimens.halfSpacing,
@@ -206,109 +317,33 @@ class ProjectCard extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildLastOpenedText(BuildContext context) {
-    final lastOpenedText = _getLastOpenedText();
+class _LastOpenedText extends StatelessWidget {
+  const _LastOpenedText();
+
+  @override
+  Widget build(BuildContext context) {
+    final project = context.findAncestorWidgetOfExactType<ProjectCard>()!.project;
+    final now = DateTime.now();
+    final difference = now.difference(project.lastOpened);
+    
+    String lastOpenedText;
+    if (difference.inDays > 0) {
+      lastOpenedText = '${difference.inDays}d ago';
+    } else if (difference.inHours > 0) {
+      lastOpenedText = '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      lastOpenedText = '${difference.inMinutes}m ago';
+    } else {
+      lastOpenedText = 'Just now';
+    }
 
     return Text(
       lastOpenedText,
       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color:
-                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
           ),
     );
-  }
-
-  Color _getProjectColor(BuildContext context) {
-    // Generate a color based on project name hash
-    final hash = project.name.hashCode;
-    final colors = [
-      Theme.of(context).colorScheme.primary,
-      Theme.of(context).colorScheme.secondary,
-      Theme.of(context).colorScheme.tertiary,
-      Colors.blue,
-      Colors.green,
-      Colors.orange,
-      Colors.purple,
-      Colors.teal,
-    ];
-
-    return colors[hash.abs() % colors.length];
-  }
-
-  IconData _getProjectIcon() => Icons.folder;
-
-  String _getDisplayPath() {
-    try {
-      // Show relative path from home directory if possible
-      final homePath = path.dirname(path.dirname(project.path));
-      if (project.path.startsWith(homePath)) {
-        return '~/${path.relative(project.path, from: homePath)}';
-      }
-      return project.path;
-    } catch (e) {
-      return project.path;
-    }
-  }
-
-  String _getLastOpenedText() {
-    final now = DateTime.now();
-    final lastOpened = project.lastOpened;
-    final difference = now.difference(lastOpened);
-
-    if (difference.inDays > 0) {
-      return '${difference.inDays}d ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m ago';
-    } else {
-      return 'Just now';
-    }
-  }
-  
-  void _showRenameDialog(BuildContext context) {
-    final controller = TextEditingController(text: project.name);
-    
-    showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Rename Project'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Project Name',
-            border: OutlineInputBorder(),
-          ),
-          autofocus: true,
-          onSubmitted: (value) {
-            if (value.trim().isNotEmpty) {
-              Navigator.of(context).pop(value.trim());
-            }
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              final newName = controller.text.trim();
-              if (newName.isNotEmpty && newName != project.name) {
-                Navigator.of(context).pop(newName);
-              } else {
-                Navigator.of(context).pop();
-              }
-            },
-            child: const Text('Rename'),
-          ),
-        ],
-      ),
-    ).then((newName) {
-      if (newName != null && newName.isNotEmpty && newName != project.name) {
-        onRename(newName);
-      }
-    });
   }
 }

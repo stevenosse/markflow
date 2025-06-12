@@ -1,6 +1,7 @@
 import 'package:markflow/src/core/routing/app_router.dart';
 import 'package:markflow/src/core/services/file_service.dart';
 import 'package:markflow/src/core/services/git_service.dart';
+import 'package:markflow/src/core/services/path_config_service.dart';
 import 'package:markflow/src/datasource/http/dio_config.dart';
 import 'package:markflow/src/datasource/http/example_api.dart';
 import 'package:markflow/src/datasource/repositories/file_repository.dart';
@@ -17,6 +18,7 @@ final GetIt locator = GetIt.instance
   ..registerLazySingleton<AppLogger>(() => AppLogger())
   ..registerLazySingleton<Storage>(() => LocalStorage())
   ..registerLazySingleton(() => ExampleApi(dio: locator<DioConfig>().dio))
+  ..registerLazySingleton(() => PathConfigService())
   ..registerLazySingleton<ProjectRepository>(() => ProjectRepository())
   ..registerLazySingleton<FileRepository>(() => FileRepository())
   ..registerLazySingleton<GitRepository>(() => GitRepository())

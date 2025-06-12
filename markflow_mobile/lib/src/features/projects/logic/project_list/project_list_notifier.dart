@@ -42,7 +42,7 @@ class ProjectListNotifier extends ValueNotifier<ProjectListState> {
   /// Create a new project
   Future<Project?> createProject({
     required String name,
-    required String path,
+    String? path,
   }) async {
     try {
       final project = await _projectRepository.createProject(
