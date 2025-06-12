@@ -9,6 +9,7 @@ class FileTreePanel extends StatefulWidget {
   final Function(MarkdownFile) onFileDeleted;
   final Function(MarkdownFile, String) onFileRenamed;
   final Function(String) onFolderCreated;
+  final Future<void> Function(String) onFileCreated;
   
   const FileTreePanel({
     super.key,
@@ -18,6 +19,7 @@ class FileTreePanel extends StatefulWidget {
     required this.onFileDeleted,
     required this.onFileRenamed,
     required this.onFolderCreated,
+    required this.onFileCreated,
   });
   
   @override
@@ -378,7 +380,7 @@ class _FileTreePanelState extends State<FileTreePanel> {
           onChanged: (value) => fileName = value,
           onSubmitted: (value) {
             if (value.isNotEmpty) {
-              // Handle file creation through parent
+              widget.onFileCreated(value);
               Navigator.of(context).pop();
             }
           },
@@ -391,7 +393,7 @@ class _FileTreePanelState extends State<FileTreePanel> {
           TextButton(
             onPressed: () {
               if (fileName.isNotEmpty) {
-                // Handle file creation through parent
+                widget.onFileCreated(fileName);
                 Navigator.of(context).pop();
               }
             },

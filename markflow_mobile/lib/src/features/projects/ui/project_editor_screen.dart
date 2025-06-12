@@ -139,6 +139,7 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
             onFileDeleted: _notifier.deleteFile,
             onFileRenamed: _notifier.renameFile,
             onFolderCreated: _notifier.createFolder,
+            onFileCreated: _notifier.createFile,
           ),
         ),
         const VerticalDivider(width: 1),
@@ -168,6 +169,7 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
             onFileDeleted: _notifier.deleteFile,
             onFileRenamed: _notifier.renameFile,
             onFolderCreated: _notifier.createFolder,
+            onFileCreated: _notifier.createFile,
           ),
         ),
         const VerticalDivider(width: 1),
@@ -195,6 +197,7 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
             onFileDeleted: _notifier.deleteFile,
             onFileRenamed: _notifier.renameFile,
             onFolderCreated: _notifier.createFolder,
+            onFileCreated: _notifier.createFile,
           ),
         ),
         const VerticalDivider(width: 1),
@@ -235,6 +238,7 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
             onFileDeleted: _notifier.deleteFile,
             onFileRenamed: _notifier.renameFile,
             onFolderCreated: _notifier.createFolder,
+            onFileCreated: _notifier.createFile,
           ),
         ),
         const VerticalDivider(width: 1),
@@ -292,6 +296,8 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
   }
 
   void _showCreateFileDialog(BuildContext context) {
+    String fileName = '';
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -301,9 +307,10 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
             labelText: 'File name',
             hintText: 'example.md',
           ),
+          onChanged: (value) => fileName = value,
           onSubmitted: (name) {
             if (name.isNotEmpty) {
-              _notifier.createFile(fileName: name);
+              _notifier.createFileWithOptions(fileName: name);
               Navigator.of(context).pop();
             }
           },
@@ -315,8 +322,10 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
           ),
           TextButton(
             onPressed: () {
-              // Handle create file
-              Navigator.of(context).pop();
+              if (fileName.isNotEmpty) {
+                _notifier.createFileWithOptions(fileName: fileName);
+                Navigator.of(context).pop();
+              }
             },
             child: const Text('Create'),
           ),
@@ -326,6 +335,8 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
   }
 
   void _showCreateFolderDialog(BuildContext context) {
+    String folderName = '';
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -335,6 +346,7 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
             labelText: 'Folder name',
             hintText: 'docs',
           ),
+          onChanged: (value) => folderName = value,
           onSubmitted: (name) {
             if (name.isNotEmpty) {
               _notifier.createFolder(name);
@@ -349,8 +361,10 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
           ),
           TextButton(
             onPressed: () {
-              // Handle create folder
-              Navigator.of(context).pop();
+              if (folderName.isNotEmpty) {
+                _notifier.createFolder(folderName);
+                Navigator.of(context).pop();
+              }
             },
             child: const Text('Create'),
           ),

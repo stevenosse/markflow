@@ -161,6 +161,8 @@ class FileService {
   /// Get all markdown files in a directory recursively
   Future<List<MarkdownFile>> getMarkdownFiles(String directoryPath) async {
     try {
+      _logger.info('Scanning for markdown files in: $directoryPath');
+      
       final directory = Directory(directoryPath);
       if (!await directory.exists()) {
         _logger.warning('Directory does not exist: $directoryPath');
@@ -171,7 +173,11 @@ class FileService {
       await for (final entity in directory.list(recursive: true)) {
         if (entity is File) {
           final fileName = path.basename(entity.path);
+          _logger.debug('Found file: $fileName');
+          
           if (_isMarkdownFile(fileName)) {
+            _logger.info('Adding markdown file: $fileName');
+            
             final stat = await entity.stat();
             final relativePath = path.relative(entity.path, from: directoryPath);
             
@@ -187,6 +193,7 @@ class FileService {
         }
       }
       
+      _logger.info('Found ${files.length} markdown files total');
       return files;
     } catch (e) {
       _logger.error('Error getting markdown files from $directoryPath: $e');

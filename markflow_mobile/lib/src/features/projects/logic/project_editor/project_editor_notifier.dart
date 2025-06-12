@@ -104,13 +104,25 @@ class ProjectEditorNotifier extends ValueNotifier<ProjectEditorState> {
     }
   }
 
-  /// Create a new file
-  Future<void> createFile({
+  /// Create a new file from file tree panel
+  Future<void> createFile(String fileName) async {
+    await createFileWithOptions(
+      fileName: fileName,
+    );
+  }
+
+  /// Create a new file with options
+  Future<void> createFileWithOptions({
     required String fileName,
     String? content,
     String? subdirectory,
   }) async {
-    if (value.project == null) return;
+    if (value.project == null) {
+      _logger.warning('Cannot create file: no project loaded');
+      return;
+    }
+
+    _logger.info('Creating file: $fileName in project: ${value.project!.name}');
 
     try {
       final newFile = await _fileRepository.createFile(
@@ -121,11 +133,18 @@ class ProjectEditorNotifier extends ValueNotifier<ProjectEditorState> {
       );
 
       if (newFile != null) {
+        _logger.info('File created successfully: ${newFile.name}');
+        
         // Refresh file list
         await _refreshFiles();
+        _logger.info('Files refreshed. Current file count: ${value.files.length}');
 
         // Open the new file
         await openFile(newFile);
+        _logger.info('New file opened: ${newFile.name}');
+      } else {
+        _logger.error('File creation returned null');
+        value = value.setError('Failed to create file: File creation returned null');
       }
     } catch (e) {
       _logger.error('Failed to create file', e);
@@ -342,14 +361,23 @@ class ProjectEditorNotifier extends ValueNotifier<ProjectEditorState> {
 
   /// Create a new folder
   Future<bool> createFolder(String folderName) async {
-    if (value.project == null) return false;
+    if (value.project == null) {
+      _logger.warning('Cannot create folder: no project loaded');
+      return false;
+    }
+
+    _logger.info('Creating folder: $folderName in project: ${value.project!.name}');
 
     try {
       final folderPath = path.join(value.project!.path, folderName);
+      _logger.info('Folder path: $folderPath');
+      
       final success = await _fileRepository.createDirectory(folderPath);
+      _logger.info('Folder creation result: $success');
 
       if (success) {
         await _refreshFiles();
+        _logger.info('Files refreshed after folder creation');
       }
 
       return success;
@@ -425,11 +453,21 @@ class ProjectEditorNotifier extends ValueNotifier<ProjectEditorState> {
 
   /// Refresh file list
   Future<void> _refreshFiles() async {
-    if (value.project == null) return;
+    if (value.project == null) {
+      _logger.warning('Cannot refresh files: no project loaded');
+      return;
+    }
+
+    _logger.info('Refreshing files for project: ${value.project!.path}');
 
     try {
       final files = await _fileRepository.getProjectFiles(value.project!.path);
+      _logger.info('Found ${files.length} files');
+      
+      final oldFileCount = value.files.length;
       value = value.copyWith(files: files);
+      
+      _logger.info('State updated: old count=$oldFileCount, new count=${value.files.length}');
     } catch (e) {
       _logger.error('Failed to refresh files', e);
     }

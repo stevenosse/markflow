@@ -9,6 +9,7 @@ import 'package:markflow/src/features/projects/ui/widgets/project_card.dart';
 import 'package:markflow/src/features/projects/ui/widgets/project_search_bar.dart';
 import 'package:markflow/src/features/projects/ui/widgets/project_filter_tabs.dart';
 import 'package:markflow/src/features/projects/ui/widgets/empty_projects_state.dart';
+import 'package:markflow/src/features/projects/ui/widgets/project_action_dialog.dart';
 import 'package:provider/provider.dart';
 
 @RoutePage()
@@ -153,9 +154,6 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
       return EmptyProjectsState(
         filter: state.filter,
         searchQuery: state.searchQuery,
-        onCreateProject: () => _showCreateProjectDialog(context),
-        onImportProject: () => _showImportProjectDialog(context),
-        onCloneRepository: () => _showCloneRepositoryDialog(context),
       );
     }
 
@@ -221,69 +219,19 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   }
 
   void _showCreateProjectDialog(BuildContext context) {
-    String projectName = '';
-    showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('New project'),
-        content: TextField(
-          decoration: const InputDecoration(
-            labelText: 'Project name',
-            hintText: 'my-project',
-            border: OutlineInputBorder(),
-          ),
-          autofocus: true,
-          onChanged: (value) => projectName = value,
-          onSubmitted: (value) {
-            if (value.isNotEmpty) {
-              Navigator.of(context).pop(value);
-            }
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (projectName.isNotEmpty) {
-                Navigator.of(context).pop(projectName);
-              }
-            },
-            child: const Text('Create'),
-          ),
-        ],
-      ),
-    ).then((name) async {
-      if (name != null && name.isNotEmpty && context.mounted) {
-        // Path will be determined by PathConfigService
-        final project = await context.read<ProjectListNotifier>().createProject(
-              name: name,
-            );
-        if (project != null && context.mounted) {
-          _openProject(context, project);
+    ProjectActionDialog.show(
+      context,
+      initialAction: ProjectActionType.create,
+      hasExistingProjects: true,
+    ).then((result) async {
+      if (result != null && context.mounted) {
+        if (result is CreateProjectResult) {
+          await context.read<ProjectListNotifier>().createProject(
+            name: result.name,
+          );
         }
       }
     });
-  }
-
-  void _showImportProjectDialog(BuildContext context) {
-    // TODO: Implement import project dialog
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Import project feature coming soon'),
-      ),
-    );
-  }
-
-  void _showCloneRepositoryDialog(BuildContext context) {
-    // TODO: Implement clone repository dialog
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Clone repository feature coming soon'),
-      ),
-    );
   }
 
   void _showDeleteProjectDialog(BuildContext context, Project project) {

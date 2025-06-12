@@ -1,40 +1,48 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:markflow/src/core/theme/dimens.dart';
+import 'package:markflow/src/features/projects/logic/project_list/project_list_notifier.dart';
 import 'package:markflow/src/features/projects/logic/project_list/project_list_state.dart';
+import 'package:markflow/src/features/projects/ui/widgets/project_action_dialog.dart';
+import 'package:provider/provider.dart';
 
 class EmptyProjectsState extends StatelessWidget {
   final ProjectListFilter filter;
   final String searchQuery;
-  final VoidCallback onCreateProject;
-  final VoidCallback onImportProject;
-  final VoidCallback onCloneRepository;
 
   const EmptyProjectsState({
     super.key,
     required this.filter,
     required this.searchQuery,
-    required this.onCreateProject,
-    required this.onImportProject,
-    required this.onCloneRepository,
   });
 
   @override
   Widget build(BuildContext context) {
     if (searchQuery.isNotEmpty) {
-      return _buildSearchEmptyState(context);
+      return SearchEmptyState(
+        searchQuery: searchQuery,
+      );
     }
 
     switch (filter) {
       case ProjectListFilter.all:
-        return _buildNoProjectsState(context);
+        return const NoProjectsState();
       case ProjectListFilter.recent:
-        return _buildNoRecentProjectsState(context);
+        return const NoRecentProjectsState();
       case ProjectListFilter.favorites:
-        return _buildNoFavoritesState(context);
+        return const NoFavoritesState();
     }
   }
+}
 
-  Widget _buildSearchEmptyState(BuildContext context) {
+class SearchEmptyState extends StatelessWidget {
+  const SearchEmptyState({super.key, required this.searchQuery});
+
+  final String searchQuery;
+
+  @override
+  Widget build(BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(Dimens.doubleSpacing),
@@ -75,48 +83,70 @@ class EmptyProjectsState extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildNoProjectsState(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(Dimens.doubleSpacing),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.folder_open,
-              size: Dimens.iconSizeXL * 2,
-              color:
-                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: Dimens.spacing),
-            Text(
-              'Welcome to MarkFlow',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: Dimens.halfSpacing),
-            Text(
-              'Get started by creating your first project or importing an existing one.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+class NoProjectsState extends StatelessWidget {
+  const NoProjectsState({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SizedBox(
+          width: min(
+            500.0,
+            constraints.maxWidth * 0.9,
+          ),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(Dimens.doubleSpacing),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.folder_open,
+                    size: Dimens.iconSizeXL * 2,
                     color: Theme.of(context)
                         .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.7),
+                        .primary
+                        .withValues(alpha: 0.5),
                   ),
-              textAlign: TextAlign.center,
+                  const SizedBox(height: Dimens.spacing),
+                  Text(
+                    'Welcome to MarkFlow',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: Dimens.halfSpacing),
+                  Text(
+                    'Get started by creating your first project or importing an existing one.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.7),
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: Dimens.doubleSpacing),
+                  const ProjectActionButtons(),
+                ],
+              ),
             ),
-            const SizedBox(height: Dimens.doubleSpacing),
-            _buildActionButtons(context),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
+}
 
-  Widget _buildNoRecentProjectsState(BuildContext context) {
+class NoRecentProjectsState extends StatelessWidget {
+  const NoRecentProjectsState({super.key});
+
+  @override
+  Widget build(BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(Dimens.doubleSpacing),
@@ -157,8 +187,13 @@ class EmptyProjectsState extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildNoFavoritesState(BuildContext context) {
+class NoFavoritesState extends StatelessWidget {
+  const NoFavoritesState({super.key});
+
+  @override
+  Widget build(BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(Dimens.doubleSpacing),
@@ -199,14 +234,67 @@ class EmptyProjectsState extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildActionButtons(BuildContext context) {
+class ProjectActionButtons extends StatelessWidget {
+  const ProjectActionButtons({super.key});
+
+  void _showCreateProjectDialog(BuildContext context) {
+    ProjectActionDialog.show(
+      context,
+      initialAction: ProjectActionType.create,
+    ).then((result) async {
+      if (result != null && context.mounted) {
+        if (result is CreateProjectResult) {
+          await context.read<ProjectListNotifier>().createProject(
+            name: result.name,
+          );
+        }
+      }
+    });
+  }
+
+  void _showImportProjectDialog(BuildContext context) {
+    ProjectActionDialog.show(
+      context,
+      initialAction: ProjectActionType.import,
+    ).then((result) async {
+      if (result != null && context.mounted) {
+        if (result is ImportProjectResult) {
+          await context.read<ProjectListNotifier>().importProject(
+            path: result.path,
+            name: result.name,
+          );
+        }
+      }
+    });
+  }
+
+  void _showCloneRepositoryDialog(BuildContext context) {
+    ProjectActionDialog.show(
+      context,
+      initialAction: ProjectActionType.clone,
+    ).then((result) async {
+      if (result != null && context.mounted) {
+        if (result is CloneRepositoryResult) {
+          await context.read<ProjectListNotifier>().cloneRepository(
+            name: result.name ?? 'project',
+            path: result.path ?? '',
+            remoteUrl: result.url,
+          );
+        }
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       children: [
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: onCreateProject,
+            onPressed: () => _showCreateProjectDialog(context),
             icon: const Icon(Icons.add),
             label: const Text('Create new project'),
             style: ElevatedButton.styleFrom(
@@ -227,7 +315,7 @@ class EmptyProjectsState extends StatelessWidget {
           children: [
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: onImportProject,
+                onPressed: () => _showImportProjectDialog(context),
                 icon: const Icon(Icons.folder_open),
                 label: const Text('Import'),
                 style: OutlinedButton.styleFrom(
@@ -244,7 +332,7 @@ class EmptyProjectsState extends StatelessWidget {
             const SizedBox(width: Dimens.spacing),
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: onCloneRepository,
+                onPressed: () => _showCloneRepositoryDialog(context),
                 icon: const Icon(Icons.cloud_download),
                 label: const Text('Clone'),
                 style: OutlinedButton.styleFrom(
