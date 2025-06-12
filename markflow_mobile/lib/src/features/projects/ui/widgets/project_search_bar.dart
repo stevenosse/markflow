@@ -1,0 +1,94 @@
+import 'package:flutter/material.dart';
+import 'package:markflow/src/core/theme/dimens.dart';
+
+class ProjectSearchBar extends StatefulWidget {
+  final String searchQuery;
+  final ValueChanged<String> onSearchChanged;
+  
+  const ProjectSearchBar({
+    super.key,
+    required this.searchQuery,
+    required this.onSearchChanged,
+  });
+  
+  @override
+  State<ProjectSearchBar> createState() => _ProjectSearchBarState();
+}
+
+class _ProjectSearchBarState extends State<ProjectSearchBar> {
+  late final TextEditingController _controller;
+  late final FocusNode _focusNode;
+  
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.searchQuery);
+    _focusNode = FocusNode();
+  }
+  
+  @override
+  void didUpdateWidget(ProjectSearchBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.searchQuery != oldWidget.searchQuery) {
+      _controller.text = widget.searchQuery;
+    }
+  }
+  
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: Dimens.searchBarHeight,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(Dimens.searchBarRadius),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+          width: Dimens.borderWidth,
+        ),
+      ),
+      child: TextField(
+        controller: _controller,
+        focusNode: _focusNode,
+        onChanged: widget.onSearchChanged,
+        decoration: InputDecoration(
+          hintText: 'Search projects...',
+          hintStyle: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+          ),
+          prefixIcon: Icon(
+            Icons.search,
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+            size: Dimens.iconSizeM,
+          ),
+          suffixIcon: widget.searchQuery.isNotEmpty
+              ? IconButton(
+                  onPressed: () {
+                    _controller.clear();
+                    widget.onSearchChanged('');
+                    _focusNode.unfocus();
+                  },
+                  icon: Icon(
+                    Icons.clear,
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                    size: Dimens.iconSizeM,
+                  ),
+                )
+              : null,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: Dimens.spacing,
+            vertical: Dimens.halfSpacing,
+          ),
+        ),
+        style: Theme.of(context).textTheme.bodyMedium,
+      ),
+    );
+  }
+}
