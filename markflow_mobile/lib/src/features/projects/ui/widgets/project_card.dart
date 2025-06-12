@@ -181,38 +181,44 @@ class _MenuButton extends StatelessWidget {
     
     showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Rename Project'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Project Name',
-            border: OutlineInputBorder(),
+      builder: (context) => Material(
+        color: Colors.transparent,
+        child: AlertDialog.adaptive(
+          title: const Text('Rename Project'),
+          content: Padding( 
+            padding: const EdgeInsets.all(Dimens.spacing),
+            child: TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                labelText: 'Project Name',
+                border: OutlineInputBorder(),
+              ),
+              autofocus: true,
+              onSubmitted: (value) {
+                if (value.trim().isNotEmpty) {
+                  Navigator.of(context).pop(value.trim());
+                }
+              },
+            ),
           ),
-          autofocus: true,
-          onSubmitted: (value) {
-            if (value.trim().isNotEmpty) {
-              Navigator.of(context).pop(value.trim());
-            }
-          },
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                final newName = controller.text.trim();
+                if (newName.isNotEmpty && newName != projectCard.project.name) {
+                  Navigator.of(context).pop(newName);
+                } else {
+                  Navigator.of(context).pop();
+                }
+              },
+              child: const Text('Rename'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              final newName = controller.text.trim();
-              if (newName.isNotEmpty && newName != projectCard.project.name) {
-                Navigator.of(context).pop(newName);
-              } else {
-                Navigator.of(context).pop();
-              }
-            },
-            child: const Text('Rename'),
-          ),
-        ],
       ),
     ).then((newName) {
       if (newName != null && newName.isNotEmpty && newName != projectCard.project.name) {

@@ -12,60 +12,61 @@ import 'package:markflow/src/shared/services/app_logger.dart';
 class ProjectRepository {
   static const String _projectsKey = 'markflow_projects';
   static const String _recentProjectsKey = 'markflow_recent_projects';
-  
+
   final Storage _storage;
   final FileService _fileService;
   final GitService _gitService;
   final PathConfigService _pathConfigService;
   final AppLogger _logger;
-  
+
   ProjectRepository({
     Storage? storage,
     FileService? fileService,
     GitService? gitService,
     PathConfigService? pathConfigService,
     AppLogger? logger,
-  }) : _storage = storage ?? locator<Storage>(),
-       _fileService = fileService ?? locator<FileService>(),
-       _gitService = gitService ?? locator<GitService>(),
-       _pathConfigService = pathConfigService ?? locator<PathConfigService>(),
-       _logger = logger ?? locator<AppLogger>();
-  
+  })  : _storage = storage ?? locator<Storage>(),
+        _fileService = fileService ?? locator<FileService>(),
+        _gitService = gitService ?? locator<GitService>(),
+        _pathConfigService = pathConfigService ?? locator<PathConfigService>(),
+        _logger = logger ?? locator<AppLogger>();
+
   /// Get all saved projects
   Future<List<Project>> getAllProjects() async {
     try {
       final projectsJson = _storage.getStringList(_projectsKey) ?? [];
       final projects = <Project>[];
-      
+
       for (final projectJson in projectsJson) {
         try {
           final projectMap = jsonDecode(projectJson) as Map<String, dynamic>;
           final project = _projectFromMap(projectMap);
-          
+
           // Verify project directory still exists
           if (await _fileService.directoryExists(project.path)) {
             projects.add(project);
           } else {
-            _logger.warning('Project directory no longer exists: ${project.path}');
+            _logger
+                .warning('Project directory no longer exists: ${project.path}');
           }
         } catch (e) {
           _logger.error('Error parsing project JSON: $e');
         }
       }
-      
+
       return projects;
     } catch (e) {
       _logger.error('Error getting all projects: $e');
       return [];
     }
   }
-  
+
   /// Get recent projects (last 10)
   Future<List<Project>> getRecentProjects() async {
     try {
       final recentIds = _storage.getStringList(_recentProjectsKey) ?? [];
       final allProjects = await getAllProjects();
-      
+
       final recentProjects = <Project>[];
       for (final id in recentIds) {
         final project = allProjects.where((p) => p.id == id).firstOrNull;
@@ -73,35 +74,34 @@ class ProjectRepository {
           recentProjects.add(project);
         }
       }
-      
+
       return recentProjects;
     } catch (e) {
       _logger.error('Error getting recent projects: $e');
       return [];
     }
   }
-  
+
   /// Save a project
   Future<bool> saveProject(Project project) async {
     try {
       final allProjects = await getAllProjects();
-      
+
       // Remove existing project with same ID if it exists
       allProjects.removeWhere((p) => p.id == project.id);
-      
+
       // Add the new/updated project
       allProjects.add(project);
-      
+
       // Save to preferences
-      final projectsJson = allProjects
-          .map((p) => jsonEncode(_projectToMap(p)))
-          .toList();
-      
+      final projectsJson =
+          allProjects.map((p) => jsonEncode(_projectToMap(p))).toList();
+
       await _storage.writeStringList(key: _projectsKey, value: projectsJson);
-      
+
       // Update recent projects
       await _addToRecentProjects(project.id);
-      
+
       _logger.info('Project saved: ${project.name}');
       return true;
     } catch (e) {
@@ -109,38 +109,39 @@ class ProjectRepository {
       return false;
     }
   }
-  
+
   /// Delete a project
-  Future<bool> deleteProject(Project project, {bool deleteFiles = false}) async {
+  Future<bool> deleteProject(Project project,
+      {bool deleteFiles = false}) async {
     try {
       final projectId = project.id;
       final allProjects = await getAllProjects();
-      final projectToDelete = allProjects.where((p) => p.id == projectId).firstOrNull;
-      
+      final projectToDelete =
+          allProjects.where((p) => p.id == projectId).firstOrNull;
+
       if (projectToDelete == null) {
         _logger.warning('Project not found for deletion: $projectId');
         return false;
       }
-      
+
       // Delete project files if requested
       if (deleteFiles && project.path.isNotEmpty) {
         await _fileService.deleteDirectory(project.path);
         _logger.info('Project files deleted: ${project.path}');
       }
-      
+
       // Remove from projects list
       allProjects.removeWhere((p) => p.id == projectId);
-      
+
       // Save updated list
-      final projectsJson = allProjects
-          .map((p) => jsonEncode(_projectToMap(p)))
-          .toList();
-      
+      final projectsJson =
+          allProjects.map((p) => jsonEncode(_projectToMap(p))).toList();
+
       await _storage.writeStringList(key: _projectsKey, value: projectsJson);
-      
+
       // Remove from recent projects
       await _removeFromRecentProjects(projectId);
-      
+
       _logger.info('Project deleted: ${projectToDelete.name}');
       return true;
     } catch (e) {
@@ -148,7 +149,7 @@ class ProjectRepository {
       return false;
     }
   }
-  
+
   /// Create a new project
   Future<Project?> createProject({
     required String name,
@@ -158,20 +159,20 @@ class ProjectRepository {
     try {
       // Get project path (use provided path or generate from name)
       final projectPath = path ?? await _pathConfigService.getProjectPath(name);
-      
+
       // Create project directory
       if (!await _fileService.createDirectory(projectPath)) {
         _logger.error('Failed to create project directory: $projectPath');
         return null;
       }
-      
+
       // Initialize Git repository (continue even if it fails due to sandbox restrictions)
       // GitService will return true for sandbox restrictions
       await _gitService.init(projectPath);
-      
+
       // Create initial README.md file
       final readmePath = '$projectPath/README.md';
-      final readmeContent = '''# $name
+      final readmeContent = '''# ${name.toUpperCase()}
 
 Welcome to your MarkFlow project!
 
@@ -186,11 +187,11 @@ This is your project's main documentation. You can:
 
 Happy writing! 📝
 ''';
-      
+
       if (!await _fileService.createFile(readmePath, readmeContent)) {
         _logger.warning('Failed to create initial README.md file');
       }
-      
+
       // Create project object
       final project = Project(
         id: _generateProjectId(),
@@ -200,7 +201,7 @@ Happy writing! 📝
         remoteUrl: remoteUrl,
         lastOpened: DateTime.now(),
       );
-      
+
       // Save project
       if (await saveProject(project)) {
         _logger.info('New project created: $name at $path');
@@ -214,7 +215,7 @@ Happy writing! 📝
       return null;
     }
   }
-  
+
   /// Clone an existing repository
   Future<Project?> cloneProject({
     required String name,
@@ -225,7 +226,7 @@ Happy writing! 📝
       // Clone the repository (continue even if it fails due to sandbox restrictions)
       // GitService will return true for sandbox restrictions and create directory
       await _gitService.clone(remoteUrl: url, localPath: path);
-      
+
       // Create project object
       final project = Project(
         id: _generateProjectId(),
@@ -235,7 +236,7 @@ Happy writing! 📝
         remoteUrl: url,
         lastOpened: DateTime.now(),
       );
-      
+
       // Save project
       if (await saveProject(project)) {
         _logger.info('Repository cloned and project created: $name from $url');
@@ -249,66 +250,64 @@ Happy writing! 📝
       return null;
     }
   }
-  
+
   /// Update project's last opened time
   Future<bool> updateLastOpened(Project project) async {
     try {
       final allProjects = await getAllProjects();
       final projectIndex = allProjects.indexWhere((p) => p.id == project.id);
-      
+
       if (projectIndex == -1) {
         _logger.warning('Project not found for update: ${project.id}');
         return false;
       }
-      
+
       final updatedProject = allProjects[projectIndex].copyWith(
         lastOpened: DateTime.now(),
       );
-      
+
       allProjects[projectIndex] = updatedProject;
-      
+
       // Save updated list
-      final projectsJson = allProjects
-          .map((p) => jsonEncode(_projectToMap(p)))
-          .toList();
-      
+      final projectsJson =
+          allProjects.map((p) => jsonEncode(_projectToMap(p))).toList();
+
       await _storage.writeStringList(key: _projectsKey, value: projectsJson);
-      
+
       // Update recent projects
       await _addToRecentProjects(project.id);
-      
+
       return true;
     } catch (e) {
       _logger.error('Error updating last opened: $e');
       return false;
     }
   }
-  
+
   /// Toggle project favorite status
   Future<bool> toggleFavorite(String projectId) async {
     try {
       final allProjects = await getAllProjects();
       final projectIndex = allProjects.indexWhere((p) => p.id == projectId);
-      
+
       if (projectIndex == -1) {
         _logger.warning('Project not found for favorite toggle: $projectId');
         return false;
       }
-      
+
       final project = allProjects[projectIndex];
       final updatedProject = project.copyWith(
         isFavorite: !project.isFavorite,
       );
-      
+
       allProjects[projectIndex] = updatedProject;
-      
+
       // Save updated list
-      final projectsJson = allProjects
-          .map((p) => jsonEncode(_projectToMap(p)))
-          .toList();
-      
+      final projectsJson =
+          allProjects.map((p) => jsonEncode(_projectToMap(p))).toList();
+
       await _storage.writeStringList(key: _projectsKey, value: projectsJson);
-      
+
       _logger.info('Project favorite toggled: ${project.name}');
       return true;
     } catch (e) {
@@ -316,7 +315,7 @@ Happy writing! 📝
       return false;
     }
   }
-  
+
   /// Import an existing project
   Future<Project?> importProject({
     required String path,
@@ -328,14 +327,15 @@ Happy writing! 📝
         _logger.error('Directory does not exist: $path');
         return null;
       }
-      
+
       // Use directory name as project name if not provided
       final projectName = name ?? _fileService.getBaseName(path);
-      
+
       // Check if it's a Git repository
       final isGitRepo = await _gitService.isGitRepository(path);
-      final gitPath = isGitRepo ? path : path; // Use path as default instead of null
-      
+      final gitPath =
+          isGitRepo ? path : path; // Use path as default instead of null
+
       // Create project object
       final project = Project(
         id: _generateProjectId(),
@@ -345,7 +345,7 @@ Happy writing! 📝
         remoteUrl: null,
         lastOpened: DateTime.now(),
       );
-      
+
       // Save project
       if (await saveProject(project)) {
         _logger.info('Project imported: $projectName from $path');
@@ -359,29 +359,29 @@ Happy writing! 📝
       return null;
     }
   }
-  
+
   /// Add project to recent projects list
   Future<void> _addToRecentProjects(String projectId) async {
     try {
       final recentIds = _storage.getStringList(_recentProjectsKey) ?? [];
-      
+
       // Remove if already exists
       recentIds.remove(projectId);
-      
+
       // Add to beginning
       recentIds.insert(0, projectId);
-      
+
       // Keep only last 10
       if (recentIds.length > 10) {
         recentIds.removeRange(10, recentIds.length);
       }
-      
+
       await _storage.writeStringList(key: _recentProjectsKey, value: recentIds);
     } catch (e) {
       _logger.error('Error adding to recent projects: $e');
     }
   }
-  
+
   /// Remove project from recent projects list
   Future<void> _removeFromRecentProjects(String projectId) async {
     try {
@@ -392,12 +392,12 @@ Happy writing! 📝
       _logger.error('Error removing from recent projects: $e');
     }
   }
-  
+
   /// Generate a unique project ID
   String _generateProjectId() {
     return DateTime.now().millisecondsSinceEpoch.toString();
   }
-  
+
   /// Convert Project to Map for JSON serialization
   Map<String, dynamic> _projectToMap(Project project) {
     return {
@@ -410,7 +410,7 @@ Happy writing! 📝
       'isFavorite': project.isFavorite,
     };
   }
-  
+
   /// Convert Map to Project from JSON deserialization
   Project _projectFromMap(Map<String, dynamic> map) {
     return Project(

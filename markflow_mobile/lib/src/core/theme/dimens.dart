@@ -3,17 +3,23 @@ class Dimens {
   static const double minSpacing = 4.0;
   static const double halfSpacing = 8.0;
   static const double spacing = 16.0;
+  static const double spacingL = 20.0;
   static const double doubleSpacing = 32.0;
   static const double tripleSpacing = 48.0;
   static const double quadrupleSpacing = 64.0;
+  static const double quintupleSpacing = 80.0;
 
   // Border Radius
+  static const double radiusXS = 4.0;
+  static const double radiusS = 6.0;
   static const double radius = 12.0;
+  static const double radiusL = 16.0;
   static const double doubleRadius = 24.0;
   static const double fullRadius = 999.0;
   static const double cardRadius = 16.0;
-  static const double buttonRadius = 8.0;
-  static const double inputRadius = 8.0;
+  static const double buttonRadius = 12.0;
+  static const double inputRadius = 12.0;
+  static const double chipRadius = 20.0;
 
   // Icon Sizes
   static const double iconSize = 24.0;
@@ -120,9 +126,71 @@ class Dimens {
   static const double snackbarRadius = 8.0;
   static const double snackbarMargin = 16.0;
 
+  // Typography
+  static const double fontSizeXS = 10.0;
+  static const double fontSizeS = 12.0;
+  static const double fontSizeM = 14.0;
+  static const double fontSizeL = 16.0;
+  static const double fontSizeXL = 18.0;
+  static const double fontSizeXXL = 20.0;
+  static const double fontSizeHeading = 24.0;
+  static const double fontSizeTitle = 28.0;
+  static const double fontSizeDisplay = 32.0;
+
+  // Line Heights
+  static const double lineHeightTight = 1.2;
+  static const double lineHeightNormal = 1.4;
+  static const double lineHeightRelaxed = 1.6;
+  static const double lineHeightLoose = 1.8;
+
+  // Avatar Sizes
+  static const double avatarSizeXS = 24.0;
+  static const double avatarSizeS = 32.0;
+  static const double avatarSizeM = 40.0;
+  static const double avatarSizeL = 48.0;
+  static const double avatarSizeXL = 64.0;
+  static const double avatarSizeXXL = 80.0;
+
+  // Badge Sizes
+  static const double badgeSize = 16.0;
+  static const double badgeSizeS = 12.0;
+  static const double badgeSizeL = 20.0;
+
+  // Progress Indicators
+  static const double progressHeight = 4.0;
+  static const double progressHeightThick = 8.0;
+  static const double progressRadius = 2.0;
+
+  // Tooltip
+  static const double tooltipRadius = 8.0;
+  static const double tooltipPadding = 12.0;
+  static const double tooltipMaxWidth = 200.0;
+
+  // Overlay
+  static const double overlayOpacity = 0.5;
+  static const double overlayBlur = 4.0;
+
+  // Animation Durations (in milliseconds)
+  static const int animationDurationFast = 150;
+  static const int animationDurationNormal = 250;
+  static const int animationDurationSlow = 350;
+  static const int animationDurationSlower = 500;
+
   // Breakpoints
-  static const double mobileBreakpoint = 480.0;
-  static const double tabletBreakpoint = 768.0;
-  static const double desktopBreakpoint = 1024.0;
-  static const double largeDesktopBreakpoint = 1440.0;
+  static const double mobileBreakpoint = 600.0;
+  static const double tabletBreakpoint = 900.0;
+  static const double desktopBreakpoint = 1200.0;
+  static const double wideBreakpoint = 1600.0;
+
+  // Content Constraints
+  static const double maxContentWidth = 1200.0;
+  static const double maxFormWidth = 480.0;
+  static const double maxCardWidth = 400.0;
+
+  // Z-Index (Elevation)
+  static const double elevationNone = 0.0;
+  static const double elevationLow = 1.0;
+  static const double elevationMedium = 4.0;
+  static const double elevationHigh = 8.0;
+  static const double elevationHighest = 16.0;
 }

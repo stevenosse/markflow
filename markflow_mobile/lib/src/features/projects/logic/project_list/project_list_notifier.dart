@@ -139,6 +139,23 @@ class ProjectListNotifier extends ValueNotifier<ProjectListState> {
         isFavorite: !project.isFavorite,
       );
 
+      // Update state immediately for UI responsiveness
+      final updatedProjects = List<Project>.from(value.projects);
+      final index = updatedProjects.indexWhere((p) => p.id == project.id);
+      if (index != -1) {
+        updatedProjects[index] = updatedProject;
+      }
+      
+      final updatedFavorites = updatedProject.isFavorite
+          ? [...value.favoriteProjects, updatedProject]
+          : value.favoriteProjects.where((p) => p.id != project.id).toList();
+      
+      value = value.copyWith(
+        projects: updatedProjects,
+        favoriteProjects: updatedFavorites,
+      );
+
+      // Then save to repository and refresh
       await _projectRepository.saveProject(updatedProject);
       await _refreshProjects();
     } catch (e) {
@@ -154,6 +171,34 @@ class ProjectListNotifier extends ValueNotifier<ProjectListState> {
         name: newName,
       );
 
+      // Update state immediately for UI responsiveness
+      final updatedProjects = List<Project>.from(value.projects);
+      final index = updatedProjects.indexWhere((p) => p.id == project.id);
+      if (index != -1) {
+        updatedProjects[index] = updatedProject;
+      }
+      
+      // Update in favorites list if present
+      final updatedFavorites = List<Project>.from(value.favoriteProjects);
+      final favoriteIndex = updatedFavorites.indexWhere((p) => p.id == project.id);
+      if (favoriteIndex != -1) {
+        updatedFavorites[favoriteIndex] = updatedProject;
+      }
+      
+      // Update in recent projects list if present
+      final updatedRecents = List<Project>.from(value.recentProjects);
+      final recentIndex = updatedRecents.indexWhere((p) => p.id == project.id);
+      if (recentIndex != -1) {
+        updatedRecents[recentIndex] = updatedProject;
+      }
+      
+      value = value.copyWith(
+        projects: updatedProjects,
+        favoriteProjects: updatedFavorites,
+        recentProjects: updatedRecents,
+      );
+
+      // Then save to repository and refresh
       await _projectRepository.saveProject(updatedProject);
       await _refreshProjects();
     } catch (e) {

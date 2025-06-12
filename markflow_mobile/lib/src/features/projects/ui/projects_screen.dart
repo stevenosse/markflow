@@ -237,7 +237,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   void _showDeleteProjectDialog(BuildContext context, Project project) {
     showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AlertDialog.adaptive(
         title: const Text('Delete Project'),
         content: Column(
           mainAxisSize: MainAxisSize.min,

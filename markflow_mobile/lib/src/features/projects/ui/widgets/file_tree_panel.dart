@@ -370,7 +370,7 @@ class _FileTreePanelState extends State<FileTreePanel> {
     
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AlertDialog.adaptive(
         title: const Text('Create New File'),
         content: TextField(
           decoration: const InputDecoration(
@@ -409,7 +409,7 @@ class _FileTreePanelState extends State<FileTreePanel> {
     
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AlertDialog.adaptive(
         title: const Text('Create New Folder'),
         content: TextField(
           decoration: const InputDecoration(
@@ -448,7 +448,7 @@ class _FileTreePanelState extends State<FileTreePanel> {
     
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AlertDialog.adaptive(
         title: const Text('Rename File'),
         content: TextField(
           decoration: const InputDecoration(
@@ -485,7 +485,7 @@ class _FileTreePanelState extends State<FileTreePanel> {
   void _showDeleteFileDialog(BuildContext context, MarkdownFile file) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AlertDialog.adaptive(
         title: const Text('Delete File'),
         content: Text('Are you sure you want to delete "${file.name}"?'),
         actions: [

@@ -300,7 +300,7 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
     
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AlertDialog.adaptive(
         title: const Text('Create New File'),
         content: TextField(
           decoration: const InputDecoration(
@@ -339,7 +339,7 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
     
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AlertDialog.adaptive(
         title: const Text('Create New Folder'),
         content: TextField(
           decoration: const InputDecoration(
