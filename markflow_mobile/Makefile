@@ -22,7 +22,7 @@ get:
 	fvm flutter pub get
 
 dmg: 
-	appdmg ./config.json ./mf.dmg
+	appdmg config.json ./mf.dmg
 
 pkg:
 	make build-macos
