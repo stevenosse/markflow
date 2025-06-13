@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:markflow/src/core/routing/app_router.dart';
 import 'package:markflow/src/core/theme/dimens.dart';
+import 'package:markflow/src/core/services/keyboard_shortcuts_service.dart';
+import 'package:markflow/src/core/services/keyboard_actions.dart';
 import 'package:markflow/src/datasource/models/project.dart';
 import 'package:markflow/src/features/projects/logic/project_list/project_list_notifier.dart';
 import 'package:markflow/src/features/projects/logic/project_list/project_list_state.dart';
@@ -40,19 +42,25 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: ValueListenableBuilder<ProjectListState>(
-        valueListenable: context.read<ProjectListNotifier>(),
-        builder: (context, state, child) {
-          return Column(
-            children: [
-              _buildDesktopHeader(context, state),
-              Expanded(
-                child: _buildDesktopBody(context, state),
-              ),
-            ],
-          );
-        },
+    return Shortcuts(
+      shortcuts: KeyboardShortcutsService.instance.projectsShortcuts,
+      child: Actions(
+        actions: KeyboardActions.projectsActions,
+        child: Scaffold(
+          body: ValueListenableBuilder<ProjectListState>(
+            valueListenable: context.read<ProjectListNotifier>(),
+            builder: (context, state, child) {
+              return Column(
+                children: [
+                  _buildDesktopHeader(context, state),
+                  Expanded(
+                    child: _buildDesktopBody(context, state),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
       ),
     );
   }

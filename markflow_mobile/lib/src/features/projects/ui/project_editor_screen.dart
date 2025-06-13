@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:markflow/src/core/theme/dimens.dart';
+import 'package:markflow/src/core/services/keyboard_shortcuts_service.dart';
+import 'package:markflow/src/core/services/keyboard_actions.dart';
 import 'package:markflow/src/datasource/models/project.dart';
 import 'package:markflow/src/features/projects/logic/project_editor/project_editor_notifier.dart';
 import 'package:markflow/src/features/projects/logic/project_editor/project_editor_state.dart';
@@ -122,25 +124,31 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
           );
         }
 
-        return Scaffold(
-          body: Column(
-            children: [
-              _DesktopEditorHeader(
-                project: state.project!,
-                selectedFile: state.currentFile,
-                hasUnsavedChanges: state.hasUnsavedChanges,
-                viewMode: state.currentView,
-                isPreviewVisible: state.isPreviewMode,
-                onSave: _notifier.saveCurrentFile,
-                onViewModeChanged: _notifier.setView,
-                onTogglePreview: _notifier.togglePreviewMode,
-                onNewFile: () => _showCreateFileDialog(context),
-                onNewFolder: () => _showCreateFolderDialog(context),
+        return Shortcuts(
+          shortcuts: KeyboardShortcutsService.instance.editorShortcuts,
+          child: Actions(
+            actions: KeyboardActions.editorActions,
+            child: Scaffold(
+              body: Column(
+                children: [
+                  _DesktopEditorHeader(
+                    project: state.project!,
+                    selectedFile: state.currentFile,
+                    hasUnsavedChanges: state.hasUnsavedChanges,
+                    viewMode: state.currentView,
+                    isPreviewVisible: state.isPreviewMode,
+                    onSave: _notifier.saveCurrentFile,
+                    onViewModeChanged: _notifier.setView,
+                    onTogglePreview: _notifier.togglePreviewMode,
+                    onNewFile: () => _showCreateFileDialog(context),
+                    onNewFolder: () => _showCreateFolderDialog(context),
+                  ),
+                  Expanded(
+                    child: _buildDesktopBody(context, state),
+                  ),
+                ],
               ),
-              Expanded(
-                child: _buildDesktopBody(context, state),
-              ),
-            ],
+            ),
           ),
         );
       },
