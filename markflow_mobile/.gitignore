@@ -49,3 +49,7 @@ app.*.map.json
 .vscode/
 
 .fvmrc
+
+mf.dmg
+
+*/.DS_Store

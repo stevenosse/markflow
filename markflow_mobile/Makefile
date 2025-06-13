@@ -13,14 +13,17 @@ i18n:
 	@echo "Generating i18n..."
 	fvm dart run intl_utils:generate
 
-build-android:
-	@echo "Building Android..."
-	fvm flutter build appbundle --release
-
-build-ios:
-	@echo "Building iOS..."
-	fvm flutter build ios
+build-macos:
+	@echo "Building macOS..."
+	fvm flutter build macos
 
 get:
 	@echo "Getting dependencies..."
 	fvm flutter pub get
+
+dmg: 
+	appdmg ./config.json ./mf.dmg
+
+pkg:
+	make build-macos
+	make dmg
