@@ -36,15 +36,24 @@ class _FileTreePanelState extends State<FileTreePanel> {
         color: Theme.of(context).colorScheme.surface,
         border: Border(
           right: BorderSide(
-            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
-            width: Dimens.borderWidth,
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.12),
+            width: 1,
           ),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(2, 0),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          _buildHeader(context),
-          const Divider(height: 1),
+          _DesktopFileTreeHeader(
+            onFileCreated: widget.onFileCreated,
+            onFolderCreated: widget.onFolderCreated,
+          ),
           Expanded(
             child: _buildFileTree(context),
           ),
@@ -53,143 +62,18 @@ class _FileTreePanelState extends State<FileTreePanel> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Dimens.spacing,
-        vertical: Dimens.spacing,
-      ),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
-            width: Dimens.borderWidth,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(Dimens.minSpacing),
-            decoration: BoxDecoration(
-              color:
-                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(Dimens.radiusS),
-            ),
-            child: Icon(
-              Icons.folder_outlined,
-              size: Dimens.iconSizeS,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-          const SizedBox(width: Dimens.halfSpacing),
-          Expanded(
-            child: Text(
-              'Files',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(Dimens.radiusS),
-            ),
-            child: PopupMenuButton<String>(
-              icon: Icon(
-                Icons.add,
-                size: Dimens.iconSizeS,
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.7),
-              ),
-              tooltip: 'Add new file or folder',
-              onSelected: (value) {
-                switch (value) {
-                  case 'new_file':
-                    _showCreateFileDialog(context);
-                    break;
-                  case 'new_folder':
-                    _showCreateFolderDialog(context);
-                    break;
-                }
-              },
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: 'new_file',
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.insert_drive_file_outlined,
-                        size: Dimens.iconSizeS,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(width: Dimens.halfSpacing),
-                      const Text('New File'),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'new_folder',
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.create_new_folder_outlined,
-                        size: Dimens.iconSizeS,
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
-                      const SizedBox(width: Dimens.halfSpacing),
-                      const Text('New Folder'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
   Widget _buildFileTree(BuildContext context) {
     if (widget.files.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(Dimens.spacing),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.folder_open,
-                size: Dimens.iconSizeL,
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.3),
-              ),
-              const SizedBox(height: Dimens.halfSpacing),
-              Text(
-                'No files',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.5),
-                    ),
-              ),
-            ],
-          ),
-        ),
-      );
+      return _DesktopEmptyState();
     }
 
     final fileTree = _buildFileTreeStructure(widget.files);
 
     return ListView(
-      padding: const EdgeInsets.symmetric(vertical: Dimens.halfSpacing),
+      padding: EdgeInsets.symmetric(
+        vertical: Dimens.desktopSpacing / 2,
+        horizontal: Dimens.desktopFileTreePadding,
+      ),
       children: _buildTreeNodes(context, fileTree, 0),
     );
   }
@@ -251,48 +135,53 @@ class _FileTreePanelState extends State<FileTreePanel> {
 
     return Container(
       margin: EdgeInsets.only(
-        left: Dimens.halfSpacing + (depth * Dimens.fileTreeIndent),
-        right: Dimens.halfSpacing,
+        left: depth * Dimens.desktopFileTreeIndent,
         bottom: 2,
       ),
+      height: Dimens.desktopFileTreeItemHeight,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(Dimens.radiusS),
+        borderRadius: BorderRadius.circular(Dimens.desktopRadius),
         color: isSelected
-            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.12)
+            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.08)
+            : null,
+        border: isSelected
+            ? Border.all(
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                width: 1,
+              )
             : null,
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: () => widget.onFileSelected(file),
-          borderRadius: BorderRadius.circular(Dimens.radiusS),
-          child: Container(
+          borderRadius: BorderRadius.circular(Dimens.desktopRadius),
+          hoverColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.04),
+          child: Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: Dimens.halfSpacing,
-              vertical: Dimens.halfSpacing,
+              horizontal: Dimens.desktopSpacing / 2,
+              vertical: 4,
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(2),
+                  width: 24,
+                  height: 24,
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withValues(alpha: 0.1)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(Dimens.radiusXS),
+                        ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
+                        : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(4),
                   ),
                   child: Icon(
                     _getFileIcon(file.name),
-                    size: Dimens.iconSizeS,
+                    size: Dimens.desktopFileTreeIconSize,
                     color: isSelected
                         ? Theme.of(context).colorScheme.primary
                         : _getFileIconColor(context, file.name),
                   ),
                 ),
-                const SizedBox(width: Dimens.halfSpacing),
+                const SizedBox(width: Dimens.desktopSpacing / 2),
                 Expanded(
                   child: Text(
                     name,
@@ -300,85 +189,29 @@ class _FileTreePanelState extends State<FileTreePanel> {
                           color: isSelected
                               ? Theme.of(context).colorScheme.primary
                               : Theme.of(context).colorScheme.onSurface,
-                          fontWeight:
-                              isSelected ? FontWeight.w500 : FontWeight.w400,
-                          fontSize: 14,
+                          fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
+                          fontSize: 13,
+                          letterSpacing: 0.1,
                         ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 if (file.hasUnsavedChanges)
                   Container(
-                    margin: const EdgeInsets.only(right: Dimens.minSpacing),
+                    margin: const EdgeInsets.only(right: 8),
                     child: Container(
-                      width: 8,
-                      height: 8,
+                      width: 6,
+                      height: 6,
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.tertiary,
                         shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .tertiary
-                                .withValues(alpha: 0.3),
-                            blurRadius: 2,
-                            spreadRadius: 1,
-                          ),
-                        ],
                       ),
                     ),
                   ),
-                PopupMenuButton<String>(
-                  icon: Icon(
-                    Icons.more_horiz,
-                    size: Dimens.iconSizeXS,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.4),
-                  ),
-                  tooltip: 'File options',
-                  onSelected: (value) {
-                    switch (value) {
-                      case 'rename':
-                        _showRenameFileDialog(context, file);
-                        break;
-                      case 'delete':
-                        _showDeleteFileDialog(context, file);
-                        break;
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'rename',
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.edit_outlined,
-                            size: Dimens.iconSizeS,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          const SizedBox(width: Dimens.halfSpacing),
-                          const Text('Rename'),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.delete_outline,
-                            size: Dimens.iconSizeS,
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                          const SizedBox(width: Dimens.halfSpacing),
-                          const Text('Delete'),
-                        ],
-                      ),
-                    ),
-                  ],
+                _DesktopFileOptionsButton(
+                  file: file,
+                  onRename: () => _showRenameFileDialog(context, file),
+                  onDelete: () => _showDeleteFileDialog(context, file),
                 ),
               ],
             ),
@@ -390,7 +223,7 @@ class _FileTreePanelState extends State<FileTreePanel> {
 
   Widget _buildFolderNode(BuildContext context, String name,
       Map<String, dynamic> children, int depth) {
-    final folderPath = name; // Simplified for this example
+    final folderPath = name;
     final isExpanded = _expandedFolders.contains(folderPath);
 
     return Column(
@@ -398,12 +231,12 @@ class _FileTreePanelState extends State<FileTreePanel> {
       children: [
         Container(
           margin: EdgeInsets.only(
-            left: Dimens.halfSpacing + (depth * Dimens.fileTreeIndent),
-            right: Dimens.halfSpacing,
+            left: depth * Dimens.desktopFileTreeIndent,
             bottom: 2,
           ),
+          height: Dimens.desktopFileTreeItemHeight,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(Dimens.radiusS),
+            borderRadius: BorderRadius.circular(Dimens.desktopRadius),
           ),
           child: Material(
             color: Colors.transparent,
@@ -417,55 +250,51 @@ class _FileTreePanelState extends State<FileTreePanel> {
                   }
                 });
               },
-              borderRadius: BorderRadius.circular(Dimens.radiusS),
-              child: Container(
+              borderRadius: BorderRadius.circular(Dimens.desktopRadius),
+              hoverColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+              child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: Dimens.halfSpacing,
-                  vertical: Dimens.halfSpacing,
+                  horizontal: Dimens.desktopSpacing / 2,
+                  vertical: 4,
                 ),
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(2),
+                      width: 24,
+                      height: 24,
                       decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(Dimens.radiusXS),
-                      ),
-                      child: Icon(
-                        isExpanded
-                            ? Icons.keyboard_arrow_down
-                            : Icons.keyboard_arrow_right,
-                        size: Dimens.iconSizeS,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .secondary
-                            .withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(Dimens.radiusXS),
+                        color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4),
                       ),
                       child: Icon(
                         isExpanded ? Icons.folder_open : Icons.folder,
-                        size: Dimens.iconSizeS,
+                        size: Dimens.desktopFileTreeIconSize,
                         color: Theme.of(context).colorScheme.secondary,
                       ),
                     ),
-                    const SizedBox(width: Dimens.halfSpacing),
+                    const SizedBox(width: 6),
+                    Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                      child: Icon(
+                        isExpanded ? Icons.expand_less : Icons.chevron_right,
+                        size: 12,
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                    ),
+                    const SizedBox(width: Dimens.desktopSpacing / 2),
                     Expanded(
                       child: Text(
                         name,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Theme.of(context).colorScheme.onSurface,
                               fontWeight: FontWeight.w500,
-                              fontSize: 14,
+                              fontSize: 13,
+                              letterSpacing: 0.1,
                             ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -517,84 +346,6 @@ class _FileTreePanelState extends State<FileTreePanel> {
       default:
         return Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6);
     }
-  }
-
-  void _showCreateFileDialog(BuildContext context) {
-    String fileName = '';
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog.adaptive(
-        title: const Text('Create New File'),
-        content: TextField(
-          decoration: const InputDecoration(
-            labelText: 'File name',
-            hintText: 'example.md',
-          ),
-          onChanged: (value) => fileName = value,
-          onSubmitted: (value) {
-            if (value.isNotEmpty) {
-              widget.onFileCreated(value);
-              Navigator.of(context).pop();
-            }
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (fileName.isNotEmpty) {
-                widget.onFileCreated(fileName);
-                Navigator.of(context).pop();
-              }
-            },
-            child: const Text('Create'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showCreateFolderDialog(BuildContext context) {
-    String folderName = '';
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog.adaptive(
-        title: const Text('Create New Folder'),
-        content: TextField(
-          decoration: const InputDecoration(
-            labelText: 'Folder name',
-            hintText: 'docs',
-          ),
-          onChanged: (value) => folderName = value,
-          onSubmitted: (value) {
-            if (value.isNotEmpty) {
-              widget.onFolderCreated(value);
-              Navigator.of(context).pop();
-            }
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (folderName.isNotEmpty) {
-                widget.onFolderCreated(folderName);
-                Navigator.of(context).pop();
-              }
-            },
-            child: const Text('Create'),
-          ),
-        ],
-      ),
-    );
   }
 
   void _showRenameFileDialog(BuildContext context, MarkdownFile file) {
@@ -656,6 +407,331 @@ class _FileTreePanelState extends State<FileTreePanel> {
               foregroundColor: Theme.of(context).colorScheme.error,
             ),
             child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DesktopFileTreeHeader extends StatelessWidget {
+  final Future<void> Function(String) onFileCreated;
+  final Function(String) onFolderCreated;
+
+  const _DesktopFileTreeHeader({
+    required this.onFileCreated,
+    required this.onFolderCreated,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: Dimens.desktopFileTreeHeaderHeight,
+      padding: EdgeInsets.symmetric(
+        horizontal: Dimens.desktopFileTreePadding,
+        vertical: Dimens.desktopSpacing / 2,
+      ),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        border: Border(
+          bottom: BorderSide(
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.08),
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Icon(
+              Icons.folder_outlined,
+              size: Dimens.desktopFileTreeIconSize,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          const SizedBox(width: Dimens.desktopSpacing / 2),
+          Expanded(
+            child: Text(
+              'Files',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 14,
+                    letterSpacing: 0.1,
+                  ),
+            ),
+          ),
+          _DesktopAddButton(
+            onFileCreated: onFileCreated,
+            onFolderCreated: onFolderCreated,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DesktopAddButton extends StatelessWidget {
+  final Future<void> Function(String) onFileCreated;
+  final Function(String) onFolderCreated;
+
+  const _DesktopAddButton({
+    required this.onFileCreated,
+    required this.onFolderCreated,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 28,
+      height: 28,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: PopupMenuButton<String>(
+        icon: Icon(
+          Icons.add,
+          size: Dimens.desktopFileTreeIconSize,
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+        ),
+        tooltip: 'Add new file or folder',
+        padding: EdgeInsets.zero,
+        onSelected: (value) {
+          switch (value) {
+            case 'new_file':
+              _showCreateFileDialog(context);
+              break;
+            case 'new_folder':
+              _showCreateFolderDialog(context);
+              break;
+          }
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem(
+            value: 'new_file',
+            child: Row(
+              children: [
+                Icon(
+                  Icons.insert_drive_file_outlined,
+                  size: Dimens.desktopFileTreeIconSize,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: Dimens.desktopSpacing / 2),
+                const Text('New File'),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: 'new_folder',
+            child: Row(
+              children: [
+                Icon(
+                  Icons.create_new_folder_outlined,
+                  size: Dimens.desktopFileTreeIconSize,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                const SizedBox(width: Dimens.desktopSpacing / 2),
+                const Text('New Folder'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCreateFileDialog(BuildContext context) {
+    String fileName = '';
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog.adaptive(
+        title: const Text('Create New File'),
+        content: TextField(
+          decoration: const InputDecoration(
+            labelText: 'File name',
+            hintText: 'example.md',
+          ),
+          onChanged: (value) => fileName = value,
+          onSubmitted: (value) {
+            if (value.isNotEmpty) {
+              onFileCreated(value);
+              Navigator.of(context).pop();
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (fileName.isNotEmpty) {
+                onFileCreated(fileName);
+                Navigator.of(context).pop();
+              }
+            },
+            child: const Text('Create'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCreateFolderDialog(BuildContext context) {
+    String folderName = '';
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog.adaptive(
+        title: const Text('Create New Folder'),
+        content: TextField(
+          decoration: const InputDecoration(
+            labelText: 'Folder name',
+            hintText: 'docs',
+          ),
+          onChanged: (value) => folderName = value,
+          onSubmitted: (value) {
+            if (value.isNotEmpty) {
+              onFolderCreated(value);
+              Navigator.of(context).pop();
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (folderName.isNotEmpty) {
+                onFolderCreated(folderName);
+                Navigator.of(context).pop();
+              }
+            },
+            child: const Text('Create'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DesktopEmptyState extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(Dimens.desktopSpacing),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(Dimens.desktopCardRadius),
+              ),
+              child: Icon(
+                Icons.folder_open_outlined,
+                size: 32,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+              ),
+            ),
+            const SizedBox(height: Dimens.desktopSpacing),
+            Text(
+              'No files yet',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                    fontWeight: FontWeight.w500,
+                  ),
+            ),
+            const SizedBox(height: Dimens.desktopSpacing / 2),
+            Text(
+              'Create your first file to get started',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DesktopFileOptionsButton extends StatelessWidget {
+  final MarkdownFile file;
+  final VoidCallback onRename;
+  final VoidCallback onDelete;
+
+  const _DesktopFileOptionsButton({
+    required this.file,
+    required this.onRename,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: PopupMenuButton<String>(
+        icon: Icon(
+          Icons.more_horiz,
+          size: 14,
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+        ),
+        tooltip: 'File options',
+        padding: EdgeInsets.zero,
+        onSelected: (value) {
+          switch (value) {
+            case 'rename':
+              onRename();
+              break;
+            case 'delete':
+              onDelete();
+              break;
+          }
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem(
+            value: 'rename',
+            child: Row(
+              children: [
+                Icon(
+                  Icons.edit_outlined,
+                  size: Dimens.desktopFileTreeIconSize,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: Dimens.desktopSpacing / 2),
+                const Text('Rename'),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: 'delete',
+            child: Row(
+              children: [
+                Icon(
+                  Icons.delete_outline,
+                  size: Dimens.desktopFileTreeIconSize,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                const SizedBox(width: Dimens.desktopSpacing / 2),
+                const Text('Delete'),
+              ],
+            ),
           ),
         ],
       ),

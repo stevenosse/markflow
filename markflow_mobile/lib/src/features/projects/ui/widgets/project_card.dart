@@ -23,23 +23,30 @@ class ProjectCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BasicCard(
-      childPadding: EdgeInsets.all(Dimens.spacing),
+      childPadding: const EdgeInsets.all(Dimens.desktopSpacing),
+      borderRadius: BorderRadius.circular(Dimens.desktopCardRadius),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(Dimens.cardRadius),
+        borderRadius: BorderRadius.circular(Dimens.desktopCardRadius),
         child: Container(
-          height: Dimens.projectCardHeight,
-          padding: const EdgeInsets.all(Dimens.cardMargin),
+          constraints: const BoxConstraints(
+            minHeight: Dimens.desktopProjectCardHeight,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const _ProjectHeader(),
+              _ProjectHeader(
+                project: project,
+                onFavoriteToggle: onFavoriteToggle,
+                onDelete: onDelete,
+                onRename: onRename,
+              ),
+              const SizedBox(height: Dimens.spacing),
+              _ProjectTitle(project: project),
               const SizedBox(height: Dimens.halfSpacing),
-              const _ProjectTitle(),
-              const SizedBox(height: Dimens.minSpacing),
-              const _ProjectPath(),
-              const SizedBox(height: Dimens.minSpacing),
-              const _ProjectFooter(),
+              _ProjectPath(project: project),
+              const Spacer(),
+              _ProjectFooter(project: project),
             ],
           ),
         ),
@@ -49,27 +56,45 @@ class ProjectCard extends StatelessWidget {
 }
 
 class _ProjectHeader extends StatelessWidget {
-  const _ProjectHeader();
+  final Project project;
+  final VoidCallback onFavoriteToggle;
+  final VoidCallback onDelete;
+  final void Function(String) onRename;
+
+  const _ProjectHeader({
+    required this.project,
+    required this.onFavoriteToggle,
+    required this.onDelete,
+    required this.onRename,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const _ProjectIcon(),
+        _ProjectIcon(project: project),
         const Spacer(),
-        const _FavoriteButton(),
-        const _MenuButton(),
+        _FavoriteButton(
+          project: project,
+          onFavoriteToggle: onFavoriteToggle,
+        ),
+        _MenuButton(
+          project: project,
+          onDelete: onDelete,
+          onRename: onRename,
+        ),
       ],
     );
   }
 }
 
 class _ProjectIcon extends StatelessWidget {
-  const _ProjectIcon();
+  final Project project;
+
+  const _ProjectIcon({required this.project});
 
   @override
   Widget build(BuildContext context) {
-    final project = context.findAncestorWidgetOfExactType<ProjectCard>()!.project;
     final hash = project.name.hashCode;
     final colors = [
       Theme.of(context).colorScheme.primary,
@@ -84,39 +109,44 @@ class _ProjectIcon extends StatelessWidget {
     final color = colors[hash.abs() % colors.length];
 
     return Container(
-      width: Dimens.iconSizeL,
-      height: Dimens.iconSizeL,
+      width: Dimens.desktopSpacingL,
+      height: Dimens.desktopSpacingL,
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(Dimens.buttonRadius),
+        borderRadius: BorderRadius.circular(Dimens.desktopRadius),
       ),
-      child: const Icon(
+      child: Icon(
         Icons.folder,
         color: Colors.white,
-        size: Dimens.iconSizeM,
+        size: Dimens.desktopIconSize,
       ),
     );
   }
 }
 
 class _FavoriteButton extends StatelessWidget {
-  const _FavoriteButton();
+  final Project project;
+  final VoidCallback onFavoriteToggle;
+
+  const _FavoriteButton({
+    required this.project,
+    required this.onFavoriteToggle,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final projectCard = context.findAncestorWidgetOfExactType<ProjectCard>()!;
     return IconButton(
-      onPressed: projectCard.onFavoriteToggle,
+      onPressed: onFavoriteToggle,
       icon: Icon(
-        projectCard.project.isFavorite ? Icons.favorite : Icons.favorite_border,
-        color: projectCard.project.isFavorite
+        project.isFavorite ? Icons.favorite : Icons.favorite_border,
+        color: project.isFavorite
             ? Theme.of(context).colorScheme.error
             : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-        size: Dimens.iconSizeM,
+        size: Dimens.desktopIconSize,
       ),
-      constraints: const BoxConstraints(
-        minWidth: Dimens.iconSize,
-        minHeight: Dimens.iconSize,
+      constraints: BoxConstraints(
+        minWidth: Dimens.desktopButtonHeight,
+        minHeight: Dimens.desktopButtonHeight,
       ),
       padding: EdgeInsets.zero,
     );
@@ -124,11 +154,18 @@ class _FavoriteButton extends StatelessWidget {
 }
 
 class _MenuButton extends StatelessWidget {
-  const _MenuButton();
+  final Project project;
+  final VoidCallback onDelete;
+  final void Function(String) onRename;
+
+  const _MenuButton({
+    required this.project,
+    required this.onDelete,
+    required this.onRename,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final projectCard = context.findAncestorWidgetOfExactType<ProjectCard>()!;
     return PopupMenuButton<String>(
       onSelected: (value) {
         switch (value) {
@@ -136,28 +173,28 @@ class _MenuButton extends StatelessWidget {
             _showRenameDialog(context);
             break;
           case 'delete':
-            projectCard.onDelete();
+            onDelete();
             break;
         }
       },
       itemBuilder: (context) => [
-        const PopupMenuItem(
+        PopupMenuItem(
           value: 'rename',
           child: Row(
             children: [
-              Icon(Icons.edit, size: Dimens.iconSizeS),
-              SizedBox(width: Dimens.halfSpacing),
-              Text('Rename'),
+              Icon(Icons.edit, size: Dimens.desktopIconSize),
+              const SizedBox(width: Dimens.halfSpacing),
+              const Text('Rename'),
             ],
           ),
         ),
-        const PopupMenuItem(
+        PopupMenuItem(
           value: 'delete',
           child: Row(
             children: [
-              Icon(Icons.delete, size: Dimens.iconSizeS),
-              SizedBox(width: Dimens.halfSpacing),
-              Text('Delete'),
+              Icon(Icons.delete, size: Dimens.desktopIconSize),
+              const SizedBox(width: Dimens.halfSpacing),
+              const Text('Delete'),
             ],
           ),
         ),
@@ -165,19 +202,18 @@ class _MenuButton extends StatelessWidget {
       icon: Icon(
         Icons.more_vert,
         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-        size: Dimens.iconSizeM,
+        size: Dimens.desktopIconSize,
       ),
-      constraints: const BoxConstraints(
-        minWidth: Dimens.iconSize,
-        minHeight: Dimens.iconSize,
+      constraints: BoxConstraints(
+        minWidth: Dimens.desktopButtonHeight,
+        minHeight: Dimens.desktopButtonHeight,
       ),
       padding: EdgeInsets.zero,
     );
   }
 
   void _showRenameDialog(BuildContext context) {
-    final projectCard = context.findAncestorWidgetOfExactType<ProjectCard>()!;
-    final controller = TextEditingController(text: projectCard.project.name);
+    final controller = TextEditingController(text: project.name);
     
     showDialog<String>(
       context: context,
@@ -209,7 +245,7 @@ class _MenuButton extends StatelessWidget {
             TextButton(
               onPressed: () {
                 final newName = controller.text.trim();
-                if (newName.isNotEmpty && newName != projectCard.project.name) {
+                if (newName.isNotEmpty && newName != project.name) {
                   Navigator.of(context).pop(newName);
                 } else {
                   Navigator.of(context).pop();
@@ -221,19 +257,20 @@ class _MenuButton extends StatelessWidget {
         ),
       ),
     ).then((newName) {
-      if (newName != null && newName.isNotEmpty && newName != projectCard.project.name) {
-        projectCard.onRename(newName);
+      if (newName != null && newName.isNotEmpty && newName != project.name) {
+        onRename(newName);
       }
     });
   }
 }
 
 class _ProjectTitle extends StatelessWidget {
-  const _ProjectTitle();
+  final Project project;
+
+  const _ProjectTitle({required this.project});
 
   @override
   Widget build(BuildContext context) {
-    final project = context.findAncestorWidgetOfExactType<ProjectCard>()!.project;
     return Text(
       project.name,
       style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -246,11 +283,12 @@ class _ProjectTitle extends StatelessWidget {
 }
 
 class _ProjectPath extends StatelessWidget {
-  const _ProjectPath();
+  final Project project;
+
+  const _ProjectPath({required this.project});
 
   @override
   Widget build(BuildContext context) {
-    final project = context.findAncestorWidgetOfExactType<ProjectCard>()!.project;
     String displayPath;
     try {
       final homePath = path.dirname(path.dirname(project.path));
@@ -268,53 +306,57 @@ class _ProjectPath extends StatelessWidget {
       style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
           ),
-      maxLines: 1,
+      maxLines: 2,
       overflow: TextOverflow.ellipsis,
     );
   }
 }
 
 class _ProjectFooter extends StatelessWidget {
-  const _ProjectFooter();
+  final Project project;
+
+  const _ProjectFooter({required this.project});
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Row(
       children: [
-        _GitIndicator(),
-        Spacer(),
-        _LastOpenedText(),
+        _GitIndicator(project: project),
+        const Spacer(),
+        _LastOpenedText(project: project),
       ],
     );
   }
 }
 
 class _GitIndicator extends StatelessWidget {
-  const _GitIndicator();
+  final Project project;
+
+  const _GitIndicator({required this.project});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Dimens.halfSpacing,
-        vertical: Dimens.minSpacing,
+      padding: EdgeInsets.symmetric(
+        horizontal: Dimens.desktopSpacing / 2,
+        vertical: Dimens.desktopSpacing / 4,
       ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(Dimens.buttonRadius),
+        borderRadius: BorderRadius.circular(Dimens.desktopRadius),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             Icons.source,
-            size: Dimens.iconSizeXS,
+            size: 12,
             color: Theme.of(context).colorScheme.primary,
           ),
-          const SizedBox(width: Dimens.minSpacing),
+          SizedBox(width: Dimens.desktopSpacing / 4),
           Text(
             'Git',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w500,
                 ),
@@ -326,29 +368,30 @@ class _GitIndicator extends StatelessWidget {
 }
 
 class _LastOpenedText extends StatelessWidget {
-  const _LastOpenedText();
+  final Project project;
+
+  const _LastOpenedText({required this.project});
 
   @override
   Widget build(BuildContext context) {
-    final project = context.findAncestorWidgetOfExactType<ProjectCard>()!.project;
     final now = DateTime.now();
     final difference = now.difference(project.lastOpened);
     
-    String lastOpenedText;
+    String timeText;
     if (difference.inDays > 0) {
-      lastOpenedText = '${difference.inDays}d ago';
+      timeText = '${difference.inDays}d ago';
     } else if (difference.inHours > 0) {
-      lastOpenedText = '${difference.inHours}h ago';
+      timeText = '${difference.inHours}h ago';
     } else if (difference.inMinutes > 0) {
-      lastOpenedText = '${difference.inMinutes}m ago';
+      timeText = '${difference.inMinutes}m ago';
     } else {
-      lastOpenedText = 'Just now';
+      timeText = 'Just now';
     }
 
     return Text(
-      lastOpenedText,
+      timeText,
       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
           ),
     );
   }

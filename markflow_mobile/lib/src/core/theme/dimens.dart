@@ -99,9 +99,30 @@ class Dimens {
   // Desktop specific
   static const double desktopMinWindowWidth = 1024.0;
   static const double desktopMinWindowHeight = 768.0;
-  static const double desktopSidebarWidth = 320.0;
-  static const double desktopToolbarHeight = 64.0;
-  static const double desktopContentMaxWidth = 1200.0;
+  static const double desktopSidebarWidth = 280.0;
+  static const double desktopToolbarHeight = 48.0;
+  static const double desktopContentMaxWidth = 1400.0;
+  static const double desktopHeaderHeight = 72.0;
+  static const double desktopMainPadding = 24.0;
+  static const double desktopCardSpacing = 20.0;
+  static const double desktopProjectCardWidth = 320.0;
+  static const double desktopProjectCardHeight = 180.0;
+  static const double desktopSearchBarWidth = 400.0;
+  static const double desktopSearchBarHeight = 44.0;
+  static const double desktopButtonHeight = 40.0;
+  static const double desktopInputHeight = 40.0;
+  static const double desktopIconSize = 20.0;
+  static const double desktopSpacing = 20.0;
+  static const double desktopSpacingL = 32.0;
+  static const double desktopRadius = 8.0;
+  static const double desktopCardRadius = 12.0;
+
+  // Desktop File Tree
+  static const double desktopFileTreeItemHeight = 32.0;
+  static const double desktopFileTreeIndent = 20.0;
+  static const double desktopFileTreeIconSize = 16.0;
+  static const double desktopFileTreePadding = 12.0;
+  static const double desktopFileTreeHeaderHeight = 48.0;
 
   // Search
   static const double searchBarHeight = 40.0;

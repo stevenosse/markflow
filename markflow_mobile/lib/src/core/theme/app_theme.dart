@@ -26,6 +26,7 @@ class AppTheme {
       navigationBarTheme: _buildNavigationBarTheme(colors),
       dialogTheme: _buildDialogTheme(colors),
       snackBarTheme: _buildSnackBarTheme(colors),
+      pageTransitionsTheme: _buildPageTransitionsTheme(),
       colorScheme: colors,
       extensions: [
         brightness == Brightness.light ? CustomColors.light : CustomColors.dark,
@@ -375,6 +376,18 @@ class AppTheme {
         borderRadius: BorderRadius.circular(Dimens.snackbarRadius),
       ),
       behavior: SnackBarBehavior.floating,
+    );
+  }
+
+  static PageTransitionsTheme _buildPageTransitionsTheme() {
+    return const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        TargetPlatform.macOS: FadeUpwardsPageTransitionsBuilder(),
+        TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+        TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
+      },
     );
   }
 

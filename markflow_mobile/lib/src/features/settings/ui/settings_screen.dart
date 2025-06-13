@@ -88,37 +88,97 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-        elevation: 0,
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _buildSettingsContent(),
-    );
-  }
-
-  Widget _buildSettingsContent() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(Dimens.spacing),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: Column(
         children: [
-          _buildSectionHeader('Project Storage'),
-          const SizedBox(height: Dimens.spacing),
-          _buildProjectPathCard(),
-          const SizedBox(height: Dimens.doubleSpacing),
-          _buildSectionHeader('Platform Information'),
-          const SizedBox(height: Dimens.spacing),
-          _buildPlatformInfoCard(),
+          _DesktopHeader(),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _buildDesktopSettingsContent(),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildDesktopSettingsContent() {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(Dimens.desktopMainPadding),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: Dimens.desktopContentMaxWidth),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _DesktopSectionHeader(title: 'Project Storage'),
+              SizedBox(height: Dimens.desktopSpacing),
+              _DesktopProjectPathCard(
+                currentPath: _currentPath,
+                onSelectNewPath: _selectNewPath,
+              ),
+              SizedBox(height: Dimens.desktopSpacingL),
+              _DesktopSectionHeader(title: 'Platform Information'),
+              SizedBox(height: Dimens.desktopSpacing),
+              _DesktopPlatformInfoCard(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DesktopHeader extends StatelessWidget {
+  const _DesktopHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: Dimens.desktopHeaderHeight,
+      padding: EdgeInsets.symmetric(
+        horizontal: Dimens.desktopMainPadding,
+        vertical: Dimens.desktopSpacing,
+      ),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(
+            color: Theme.of(context).dividerColor,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Text(
+            'Settings',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const Spacer(),
+          IconButton(
+            onPressed: () => context.router.pop(),
+            icon: const Icon(Icons.close),
+            iconSize: Dimens.desktopIconSize,
+            constraints: BoxConstraints(
+              minWidth: Dimens.desktopButtonHeight,
+              minHeight: Dimens.desktopButtonHeight,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DesktopSectionHeader extends StatelessWidget {
+  final String title;
+
+  const _DesktopSectionHeader({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
     return Text(
       title,
       style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -126,15 +186,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
+}
 
-  Widget _buildProjectPathCard() {
+class _DesktopProjectPathCard extends StatelessWidget {
+  final String? currentPath;
+  final VoidCallback onSelectNewPath;
+
+  const _DesktopProjectPathCard({
+    required this.currentPath,
+    required this.onSelectNewPath,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Card(
-      elevation: Dimens.cardElevation,
+      elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(Dimens.cardRadius),
+        borderRadius: BorderRadius.circular(Dimens.desktopCardRadius),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(Dimens.cardPadding),
+        padding: EdgeInsets.all(Dimens.desktopSpacing),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -143,9 +214,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Icon(
                   Icons.folder,
                   color: Theme.of(context).colorScheme.primary,
-                  size: Dimens.iconSize,
+                  size: Dimens.desktopIconSize,
                 ),
-                const SizedBox(width: Dimens.halfSpacing),
+                SizedBox(width: Dimens.desktopSpacing / 2),
                 Text(
                   'Projects Directory',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -154,43 +225,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: Dimens.spacing),
+            SizedBox(height: Dimens.desktopSpacing),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(Dimens.spacing),
+              padding: EdgeInsets.all(Dimens.desktopSpacing),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(Dimens.inputRadius),
+                borderRadius: BorderRadius.circular(Dimens.desktopRadius),
                 border: Border.all(
                   color: Theme.of(context).dividerColor,
-                  width: Dimens.borderWidth,
+                  width: 1,
                 ),
               ),
               child: Text(
-                _currentPath ?? 'Not set',
+                currentPath ?? 'Not set',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontFamily: 'monospace',
                 ),
               ),
             ),
-            const SizedBox(height: Dimens.spacing),
+            SizedBox(height: Dimens.desktopSpacing),
             Text(
               'All new projects will be created in this directory. Existing projects will not be moved.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: Dimens.spacing),
+            SizedBox(height: Dimens.desktopSpacing),
             SizedBox(
-              width: double.infinity,
+              height: Dimens.desktopButtonHeight,
               child: ElevatedButton.icon(
-                onPressed: _selectNewPath,
+                onPressed: onSelectNewPath,
                 icon: const Icon(Icons.folder_open),
                 label: const Text('Change Directory'),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: Dimens.spacing,
-                    horizontal: Dimens.doubleSpacing,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Dimens.desktopSpacing,
                   ),
                 ),
               ),
@@ -200,15 +270,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
+}
 
-  Widget _buildPlatformInfoCard() {
+class _DesktopPlatformInfoCard extends StatelessWidget {
+  const _DesktopPlatformInfoCard();
+
+  @override
+  Widget build(BuildContext context) {
     return Card(
-      elevation: Dimens.cardElevation,
+      elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(Dimens.cardRadius),
+        borderRadius: BorderRadius.circular(Dimens.desktopCardRadius),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(Dimens.cardPadding),
+        padding: EdgeInsets.all(Dimens.desktopSpacing),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -217,9 +292,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Icon(
                   Platform.isMacOS ? Icons.laptop_mac : Icons.computer,
                   color: Theme.of(context).colorScheme.primary,
-                  size: Dimens.iconSize,
+                  size: Dimens.desktopIconSize,
                 ),
-                const SizedBox(width: Dimens.halfSpacing),
+                SizedBox(width: Dimens.desktopSpacing / 2),
                 Text(
                   'Platform',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -228,24 +303,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: Dimens.spacing),
-            _buildInfoRow('Operating System', Platform.operatingSystem),
-            _buildInfoRow('Version', Platform.operatingSystemVersion),
-            _buildInfoRow('Optimized for', Platform.isMacOS ? 'macOS Desktop' : 'Desktop'),
+            SizedBox(height: Dimens.desktopSpacing),
+            _DesktopInfoRow(
+              label: 'Operating System',
+              value: Platform.operatingSystem,
+            ),
+            _DesktopInfoRow(
+              label: 'Version',
+              value: Platform.operatingSystemVersion,
+            ),
+            _DesktopInfoRow(
+              label: 'Optimized for',
+              value: Platform.isMacOS ? 'macOS Desktop' : 'Desktop',
+            ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildInfoRow(String label, String value) {
+class _DesktopInfoRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _DesktopInfoRow({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: Dimens.minSpacing),
+      padding: EdgeInsets.symmetric(vertical: Dimens.desktopSpacing / 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 120,
+            width: 140,
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(

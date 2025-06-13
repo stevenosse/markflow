@@ -44,14 +44,10 @@ class _ProjectSearchBarState extends State<ProjectSearchBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: Dimens.searchBarHeight,
+      height: Dimens.desktopSearchBarHeight,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(Dimens.searchBarRadius),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
-          width: Dimens.borderWidth,
-        ),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(Dimens.desktopRadius),
       ),
       child: TextField(
         controller: _controller,
@@ -61,11 +57,12 @@ class _ProjectSearchBarState extends State<ProjectSearchBar> {
           hintText: 'Search projects...',
           hintStyle: TextStyle(
             color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+            fontSize: 14,
           ),
           prefixIcon: Icon(
             Icons.search,
             color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-            size: Dimens.iconSizeM,
+            size: Dimens.desktopIconSize,
           ),
           suffixIcon: widget.searchQuery.isNotEmpty
               ? IconButton(
@@ -77,7 +74,7 @@ class _ProjectSearchBarState extends State<ProjectSearchBar> {
                   icon: Icon(
                     Icons.clear,
                     color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                    size: Dimens.iconSizeM,
+                    size: Dimens.desktopIconSize,
                   ),
                 )
               : null,

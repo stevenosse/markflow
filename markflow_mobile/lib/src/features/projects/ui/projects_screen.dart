@@ -41,58 +41,83 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('MarkFlow'),
-        elevation: 0,
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => context.router.push(SettingsRoute()),
-            tooltip: 'Settings',
-          ),
-        ],
-      ),
       body: ValueListenableBuilder<ProjectListState>(
         valueListenable: context.read<ProjectListNotifier>(),
         builder: (context, state, child) {
           return Column(
             children: [
-              _buildHeader(context, state),
+              _buildDesktopHeader(context, state),
               Expanded(
-                child: _buildBody(context, state),
+                child: _buildDesktopBody(context, state),
               ),
             ],
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showCreateProjectDialog(context),
-        child: const Icon(Icons.add),
-      ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, ProjectListState state) {
+  Widget _buildDesktopHeader(BuildContext context, ProjectListState state) {
     return Container(
-      padding: const EdgeInsets.all(Dimens.spacing),
+      height: Dimens.desktopHeaderHeight,
+      padding: const EdgeInsets.symmetric(
+        horizontal: Dimens.desktopMainPadding,
+        vertical: Dimens.spacing,
+      ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         border: Border(
           bottom: BorderSide(
-            color: Theme.of(context).dividerColor,
-            width: Dimens.dividerThickness,
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
+            width: 1,
           ),
         ),
       ),
-      child: Column(
+      child: Row(
         children: [
-          ProjectSearchBar(
-            searchQuery: state.searchQuery,
-            onSearchChanged: context.read<ProjectListNotifier>().setSearchQuery,
+          Text(
+            'MarkFlow',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          const SizedBox(height: Dimens.spacing),
+          const Spacer(),
+          SizedBox(
+            width: Dimens.desktopSearchBarWidth,
+            child: ProjectSearchBar(
+              searchQuery: state.searchQuery,
+              onSearchChanged: context.read<ProjectListNotifier>().setSearchQuery,
+            ),
+          ),
+          const SizedBox(width: Dimens.desktopSpacing),
+          ElevatedButton.icon(
+            onPressed: () => _showCreateProjectDialog(context),
+            icon: Icon(Icons.add, size: Dimens.desktopIconSize),
+            label: const Text('New Project'),
+            style: ElevatedButton.styleFrom(
+              minimumSize: Size(120, Dimens.desktopButtonHeight),
+            ),
+          ),
+          const SizedBox(width: Dimens.spacing),
+          IconButton(
+            icon: Icon(Icons.settings, size: Dimens.desktopIconSize),
+            onPressed: () => context.router.push(SettingsRoute()),
+            tooltip: 'Settings',
+            style: IconButton.styleFrom(
+              minimumSize: Size(Dimens.desktopButtonHeight, Dimens.desktopButtonHeight),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopBody(BuildContext context, ProjectListState state) {
+    return Container(
+      padding: const EdgeInsets.all(Dimens.desktopMainPadding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           ProjectFilterTabs(
             currentFilter: state.filter,
             onFilterChanged: context.read<ProjectListNotifier>().setFilter,
@@ -102,12 +127,16 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
               ProjectListFilter.favorites: state.favoriteProjects.length,
             },
           ),
+          const SizedBox(height: Dimens.desktopSpacing),
+          Expanded(
+            child: _buildDesktopContent(context, state),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context, ProjectListState state) {
+  Widget _buildDesktopContent(BuildContext context, ProjectListState state) {
     if (state.isLoading) {
       return const Center(
         child: CircularProgressIndicator(),
@@ -157,27 +186,23 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: () => context.read<ProjectListNotifier>().loadProjects(),
-      child: _buildProjectGrid(context, state),
-    );
+    return _buildDesktopProjectGrid(context, state);
   }
 
-  Widget _buildProjectGrid(BuildContext context, ProjectListState state) {
+  Widget _buildDesktopProjectGrid(BuildContext context, ProjectListState state) {
     final projects = state.filteredProjects;
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount = _calculateCrossAxisCount(constraints.maxWidth);
+        final crossAxisCount = _calculateDesktopCrossAxisCount(constraints.maxWidth);
 
         return GridView.builder(
-          padding: const EdgeInsets.all(Dimens.spacing),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
             childAspectRatio:
-                Dimens.projectCardWidth / Dimens.projectCardHeight,
-            crossAxisSpacing: Dimens.spacing,
-            mainAxisSpacing: Dimens.spacing,
+                Dimens.desktopProjectCardWidth / Dimens.desktopProjectCardHeight,
+            crossAxisSpacing: Dimens.desktopCardSpacing,
+            mainAxisSpacing: Dimens.desktopCardSpacing,
           ),
           itemCount: projects.length,
           itemBuilder: (context, index) {
@@ -198,16 +223,13 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     );
   }
 
-  int _calculateCrossAxisCount(double width) {
-    if (width >= Dimens.desktopBreakpoint) {
-      return 4;
-    } else if (width >= Dimens.tabletBreakpoint) {
-      return 3;
-    } else if (width >= Dimens.mobileBreakpoint) {
-      return 2;
-    } else {
-      return 1;
-    }
+  int _calculateDesktopCrossAxisCount(double width) {
+    final cardWidth = Dimens.desktopProjectCardWidth + Dimens.desktopCardSpacing;
+    final availableWidth = width - (Dimens.desktopMainPadding * 2);
+    final maxColumns = (availableWidth / cardWidth).floor();
+    
+    // Ensure minimum 2 columns and maximum 5 columns for desktop
+    return maxColumns.clamp(2, 5);
   }
 
   void _openProject(BuildContext context, Project project) {
