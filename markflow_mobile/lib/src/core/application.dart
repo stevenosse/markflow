@@ -7,11 +7,12 @@ import 'package:markflow/src/core/theme/app_theme.dart';
 import 'package:markflow/src/core/services/keyboard_shortcuts_service.dart';
 import 'package:markflow/src/core/services/keyboard_actions.dart';
 import 'package:markflow/src/shared/locator.dart';
+import 'package:markflow/src/shared/components/window_frame.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 class Application extends StatelessWidget {
   final AppRouter _appRouter;
-  
+
   Application({
     super.key,
     AppRouter? appRouter,
@@ -40,6 +41,7 @@ class Application extends StatelessWidget {
             GlobalCupertinoLocalizations.delegate,
           ],
           supportedLocales: I18n.delegate.supportedLocales,
+          builder: (context, child) => WindowFrame(child: child!),
         ),
       ),
     );

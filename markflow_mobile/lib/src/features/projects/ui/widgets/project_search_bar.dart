@@ -29,8 +29,13 @@ class _ProjectSearchBarState extends State<ProjectSearchBar> {
   @override
   void didUpdateWidget(ProjectSearchBar oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.searchQuery != oldWidget.searchQuery) {
+    if (widget.searchQuery != oldWidget.searchQuery && 
+        widget.searchQuery != _controller.text) {
+      final cursorPosition = _controller.selection.baseOffset;
       _controller.text = widget.searchQuery;
+      _controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: cursorPosition.clamp(0, widget.searchQuery.length)),
+      );
     }
   }
   

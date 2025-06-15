@@ -7,7 +7,7 @@ import 'package:markflow/src/datasource/models/project.dart';
 import 'package:markflow/src/features/projects/logic/project_editor/project_editor_notifier.dart';
 import 'package:markflow/src/features/projects/logic/project_editor/project_editor_state.dart';
 import 'package:markflow/src/features/projects/ui/widgets/file_tree_panel.dart';
-import 'package:markflow/src/features/projects/ui/widgets/markdown_editor.dart';
+import 'package:markflow/src/features/projects/ui/widgets/enhanced_markdown_editor.dart';
 import 'package:markflow/src/features/projects/ui/widgets/markdown_preview.dart';
 import 'package:markflow/src/features/projects/ui/widgets/git_panel.dart';
 
@@ -188,10 +188,13 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
         const VerticalDivider(width: 1),
         Expanded(
           child: state.currentFile != null
-              ? MarkdownEditor(
-                  file: state.currentFile!,
+              ? EnhancedMarkdownEditor(
+                  openFiles: state.openFiles,
+                  activeFile: state.currentFile!,
                   content: state.currentContent,
                   onContentChanged: _notifier.updateContent,
+                  onFileSelected: _notifier.switchToFile,
+                  onFileClose: _notifier.closeFile,
                   isLoading: state.isSaving,
                 )
               : _buildDesktopNoFileSelected(context),
@@ -246,10 +249,13 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
         const VerticalDivider(width: 1),
         if (state.currentFile != null) ...[
           Expanded(
-            child: MarkdownEditor(
-              file: state.currentFile!,
+            child: EnhancedMarkdownEditor(
+              openFiles: state.openFiles,
+              activeFile: state.currentFile!,
               content: state.currentContent,
               onContentChanged: _notifier.updateContent,
+              onFileSelected: _notifier.switchToFile,
+              onFileClose: _notifier.closeFile,
               isLoading: state.isSaving,
             ),
           ),

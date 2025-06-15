@@ -6,6 +6,7 @@ import 'package:markflow/src/core/services/path_config_service.dart';
 import 'package:markflow/src/shared/locator.dart';
 import 'package:markflow/src/shared/services/app_logger.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:markflow/src/core/routing/app_router.dart';
 
 @RoutePage()
 class SettingsScreen extends StatefulWidget {
@@ -117,11 +118,72 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onSelectNewPath: _selectNewPath,
               ),
               SizedBox(height: Dimens.desktopSpacingL),
+              _DesktopSectionHeader(title: 'Keyboard Shortcuts'),
+              SizedBox(height: Dimens.desktopSpacing),
+              _DesktopShortcutsCard(),
+              SizedBox(height: Dimens.desktopSpacingL),
               _DesktopSectionHeader(title: 'Platform Information'),
               SizedBox(height: Dimens.desktopSpacing),
               _DesktopPlatformInfoCard(),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DesktopShortcutsCard extends StatelessWidget {
+  const _DesktopShortcutsCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(Dimens.desktopCardRadius),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(Dimens.desktopSpacing),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.keyboard,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: Dimens.desktopIconSize,
+                ),
+                SizedBox(width: Dimens.desktopSpacing / 2),
+                Text(
+                  'Keyboard Shortcuts',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: Dimens.desktopSpacing),
+            Text(
+              'View and search all available keyboard shortcuts for faster navigation and productivity.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            SizedBox(height: Dimens.desktopSpacing),
+            ElevatedButton.icon(
+              onPressed: () => context.router.push(const ShortcutsRoute()),
+              icon: const Icon(Icons.launch, size: 18),
+              label: const Text('View Shortcuts'),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Dimens.desktopSpacing,
+                  vertical: Dimens.desktopSpacing / 2,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:markflow/src/core/theme/dimens.dart';
 import 'package:markflow/src/datasource/models/markdown_file.dart';
+import 'package:markflow/src/shared/components/popovers/rename_popover.dart';
 
 class FileTreePanel extends StatefulWidget {
   final List<MarkdownFile> files;
@@ -210,7 +211,7 @@ class _FileTreePanelState extends State<FileTreePanel> {
                   ),
                 _DesktopFileOptionsButton(
                   file: file,
-                  onRename: () => _showRenameFileDialog(context, file),
+                  onFileRenamed: (file, newName) => widget.onFileRenamed(file, newName),
                   onDelete: () => _showDeleteFileDialog(context, file),
                 ),
               ],
@@ -346,45 +347,6 @@ class _FileTreePanelState extends State<FileTreePanel> {
       default:
         return Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6);
     }
-  }
-
-  void _showRenameFileDialog(BuildContext context, MarkdownFile file) {
-    String newName = file.name;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog.adaptive(
-        title: const Text('Rename File'),
-        content: TextField(
-          decoration: const InputDecoration(
-            labelText: 'New name',
-          ),
-          controller: TextEditingController(text: newName),
-          onChanged: (value) => newName = value,
-          onSubmitted: (value) {
-            if (value.isNotEmpty && value != file.name) {
-              widget.onFileRenamed(file, value);
-              Navigator.of(context).pop();
-            }
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (newName.isNotEmpty && newName != file.name) {
-                widget.onFileRenamed(file, newName);
-                Navigator.of(context).pop();
-              }
-            },
-            child: const Text('Rename'),
-          ),
-        ],
-      ),
-    );
   }
 
   void _showDeleteFileDialog(BuildContext context, MarkdownFile file) {
@@ -672,69 +634,75 @@ class _DesktopEmptyState extends StatelessWidget {
 
 class _DesktopFileOptionsButton extends StatelessWidget {
   final MarkdownFile file;
-  final VoidCallback onRename;
+  final Function(MarkdownFile, String) onFileRenamed;
   final VoidCallback onDelete;
 
   const _DesktopFileOptionsButton({
     required this.file,
-    required this.onRename,
+    required this.onFileRenamed,
     required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 24,
-      height: 24,
-      child: PopupMenuButton<String>(
-        icon: Icon(
-          Icons.more_horiz,
-          size: 14,
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Rename button with popover
+        RenamePopover(
+          initialValue: file.name,
+          title: 'Rename File',
+          hintText: 'Enter new file name',
+          onRename: (newName) => onFileRenamed(file, newName),
+          onCancel: () {},
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: Icon(
+              Icons.edit_outlined,
+              size: 12,
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
+            ),
+          ),
         ),
-        tooltip: 'File options',
-        padding: EdgeInsets.zero,
-        onSelected: (value) {
-          switch (value) {
-            case 'rename':
-              onRename();
-              break;
-            case 'delete':
-              onDelete();
-              break;
-          }
-        },
-        itemBuilder: (context) => [
-          PopupMenuItem(
-            value: 'rename',
-            child: Row(
-              children: [
-                Icon(
-                  Icons.edit_outlined,
-                  size: Dimens.desktopFileTreeIconSize,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: Dimens.desktopSpacing / 2),
-                const Text('Rename'),
-              ],
+        const SizedBox(width: 4),
+        // Delete button with popup menu
+        SizedBox(
+          width: 20,
+          height: 20,
+          child: PopupMenuButton<String>(
+            icon: Icon(
+              Icons.more_horiz,
+              size: 12,
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
             ),
-          ),
-          PopupMenuItem(
-            value: 'delete',
-            child: Row(
-              children: [
-                Icon(
-                  Icons.delete_outline,
-                  size: Dimens.desktopFileTreeIconSize,
-                  color: Theme.of(context).colorScheme.error,
+            tooltip: 'More options',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            onSelected: (value) {
+              if (value == 'delete') {
+                onDelete();
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.delete_outline,
+                      size: Dimens.desktopFileTreeIconSize,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(width: Dimens.desktopSpacing / 2),
+                    const Text('Delete'),
+                  ],
                 ),
-                const SizedBox(width: Dimens.desktopSpacing / 2),
-                const Text('Delete'),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:markflow/src/core/theme/dimens.dart';
 import 'package:markflow/src/datasource/models/project.dart';
 import 'package:markflow/src/shared/components/atoms/basic_card.dart';
+import 'package:markflow/src/shared/components/popovers/rename_popover.dart';
 import 'package:path/path.dart' as path;
 
 class ProjectCard extends StatelessWidget {
@@ -166,101 +167,59 @@ class _MenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
-      onSelected: (value) {
-        switch (value) {
-          case 'rename':
-            _showRenameDialog(context);
-            break;
-          case 'delete':
-            onDelete();
-            break;
-        }
-      },
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          value: 'rename',
-          child: Row(
-            children: [
-              Icon(Icons.edit, size: Dimens.desktopIconSize),
-              const SizedBox(width: Dimens.halfSpacing),
-              const Text('Rename'),
-            ],
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Rename button with popover
+        RenamePopover(
+          initialValue: project.name,
+          title: 'Rename Project',
+          hintText: 'Enter new project name',
+          onRename: onRename,
+          onCancel: () {},
+          child: Container(
+            width: Dimens.desktopButtonHeight,
+            height: Dimens.desktopButtonHeight,
+            alignment: Alignment.center,
+            child: Icon(
+              Icons.edit,
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
+              size: Dimens.desktopIconSize,
+            ),
           ),
         ),
-        PopupMenuItem(
-          value: 'delete',
-          child: Row(
-            children: [
-              Icon(Icons.delete, size: Dimens.desktopIconSize),
-              const SizedBox(width: Dimens.halfSpacing),
-              const Text('Delete'),
-            ],
-          ),
-        ),
-      ],
-      icon: Icon(
-        Icons.more_vert,
-        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-        size: Dimens.desktopIconSize,
-      ),
-      constraints: BoxConstraints(
-        minWidth: Dimens.desktopButtonHeight,
-        minHeight: Dimens.desktopButtonHeight,
-      ),
-      padding: EdgeInsets.zero,
-    );
-  }
-
-  void _showRenameDialog(BuildContext context) {
-    final controller = TextEditingController(text: project.name);
-    
-    showDialog<String>(
-      context: context,
-      builder: (context) => Material(
-        color: Colors.transparent,
-        child: AlertDialog.adaptive(
-          title: const Text('Rename Project'),
-          content: Padding( 
-            padding: const EdgeInsets.all(Dimens.spacing),
-            child: TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'Project Name',
-                border: OutlineInputBorder(),
+        // Delete button with popup menu
+        PopupMenuButton<String>(
+          onSelected: (value) {
+            if (value == 'delete') {
+              onDelete();
+            }
+          },
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 'delete',
+              child: Row(
+                children: [
+                  Icon(Icons.delete, size: Dimens.desktopIconSize),
+                  const SizedBox(width: Dimens.halfSpacing),
+                  const Text('Delete'),
+                ],
               ),
-              autofocus: true,
-              onSubmitted: (value) {
-                if (value.trim().isNotEmpty) {
-                  Navigator.of(context).pop(value.trim());
-                }
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                final newName = controller.text.trim();
-                if (newName.isNotEmpty && newName != project.name) {
-                  Navigator.of(context).pop(newName);
-                } else {
-                  Navigator.of(context).pop();
-                }
-              },
-              child: const Text('Rename'),
             ),
           ],
+          icon: Icon(
+            Icons.more_vert,
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+            size: Dimens.desktopIconSize,
+          ),
+          constraints: BoxConstraints(
+            minWidth: Dimens.desktopButtonHeight,
+            minHeight: Dimens.desktopButtonHeight,
+          ),
+          padding: EdgeInsets.zero,
         ),
-      ),
-    ).then((newName) {
-      if (newName != null && newName.isNotEmpty && newName != project.name) {
-        onRename(newName);
-      }
-    });
+      ],
+    );
   }
 }
 

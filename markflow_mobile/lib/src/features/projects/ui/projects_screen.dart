@@ -101,7 +101,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
           ElevatedButton.icon(
             onPressed: () => _showCreateProjectDialog(context),
             icon: Icon(Icons.add, size: Dimens.desktopIconSize),
-            label: const Text('New Project'),
+            label: const Text('New project'),
             style: ElevatedButton.styleFrom(
               minimumSize: Size(120, Dimens.desktopButtonHeight),
             ),

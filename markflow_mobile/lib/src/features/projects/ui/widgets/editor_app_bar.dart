@@ -36,234 +36,302 @@ class EditorAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: Row(
+      elevation: 0,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      surfaceTintColor: Colors.transparent,
+      titleSpacing: Dimens.spacing,
+      title: _buildTitleSection(context),
+      actions: _buildActionSection(context),
+    );
+  }
+
+  Widget _buildTitleSection(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildProjectTitle(context),
+              if (selectedFile != null) _buildFileSubtitle(context),
+            ],
+          ),
+        ),
+        if (hasUnsavedChanges) _buildUnsavedBadge(context),
+      ],
+    );
+  }
+
+  Widget _buildProjectTitle(BuildContext context) {
+    return Text(
+      project.name,
+      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.2,
+      ),
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1,
+    );
+  }
+
+  Widget _buildFileSubtitle(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Row(
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  project.name,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (selectedFile != null)
-                  Text(
-                    selectedFile!.name,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-              ],
+          Icon(
+            Icons.description_outlined,
+            size: 12,
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              selectedFile!.name,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                fontWeight: FontWeight.w500,
+                fontSize: 12,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
           ),
-          if (hasUnsavedChanges)
-            Container(
-              margin: const EdgeInsets.only(left: Dimens.halfSpacing),
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                shape: BoxShape.circle,
-              ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUnsavedBadge(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(left: Dimens.halfSpacing),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: 4,
+      ),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            'Unsaved',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w600,
+              fontSize: 10,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildActionSection(BuildContext context) {
+    return [
+      if (hasUnsavedChanges) _buildSaveButton(context),
+      _buildViewModeButton(context),
+      _buildMoreOptionsButton(context),
+      const SizedBox(width: Dimens.halfSpacing),
+    ];
+  }
+
+  Widget _buildSaveButton(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(right: Dimens.halfSpacing),
+      height: 36,
+      child: IconButton(
+        onPressed: onSave,
+        icon: const Icon(Icons.save_outlined),
+        iconSize: 20,
+        tooltip: 'Save (Cmd+S)',
+        style: IconButton.styleFrom(
+          backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+          foregroundColor: Theme.of(context).colorScheme.primary,
+          padding: const EdgeInsets.all(8),
+          minimumSize: const Size(36, 36),
+          maximumSize: const Size(36, 36),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildViewModeButton(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(right: Dimens.halfSpacing),
+      height: 36,
+      child: PopupMenuButton<ProjectEditorView>(
+        icon: Icon(_getViewModeIcon(viewMode)),
+        iconSize: 20,
+        tooltip: 'View Mode',
+        onSelected: onViewModeChanged,
+        style: IconButton.styleFrom(
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+          foregroundColor: Theme.of(context).colorScheme.onSurface,
+          padding: const EdgeInsets.all(8),
+          minimumSize: const Size(36, 36),
+          maximumSize: const Size(36, 36),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        itemBuilder: (context) => [
+          _buildViewModeMenuItem(context, ProjectEditorView.editor, Icons.edit_outlined, 'Editor'),
+          _buildViewModeMenuItem(context, ProjectEditorView.preview, Icons.visibility_outlined, 'Preview'),
+          _buildViewModeMenuItem(context, ProjectEditorView.split, Icons.view_column_outlined, 'Split'),
+          _buildViewModeMenuItem(context, ProjectEditorView.git, Icons.source_outlined, 'Git'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMoreOptionsButton(BuildContext context) {
+    return SizedBox(
+      height: 36,
+      child: PopupMenuButton<String>(
+        icon: const Icon(Icons.more_vert),
+        iconSize: 20,
+        tooltip: 'More Options',
+        style: IconButton.styleFrom(
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+          foregroundColor: Theme.of(context).colorScheme.onSurface,
+          padding: const EdgeInsets.all(8),
+          minimumSize: const Size(36, 36),
+          maximumSize: const Size(36, 36),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        onSelected: (value) {
+          switch (value) {
+            case 'new_file':
+              onNewFile();
+              break;
+            case 'new_folder':
+              onNewFolder();
+              break;
+            case 'toggle_preview':
+              onTogglePreview();
+              break;
+          }
+        },
+        itemBuilder: (context) => [
+          _buildMenuItem(context, 'new_file', Icons.insert_drive_file_outlined, 'New File'),
+          _buildMenuItem(context, 'new_folder', Icons.folder_outlined, 'New Folder'),
+          if (viewMode == ProjectEditorView.editor || viewMode == ProjectEditorView.preview)
+            _buildMenuItem(
+              context,
+              'toggle_preview',
+              isPreviewVisible ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+              isPreviewVisible ? 'Hide Preview' : 'Show Preview',
             ),
         ],
       ),
-      actions: [
-        // Save button
-        if (hasUnsavedChanges)
-          IconButton(
-            onPressed: onSave,
-            icon: const Icon(Icons.save),
-            tooltip: 'Save (Cmd+S)',
-          ),
-        
-        // View mode selector
-        PopupMenuButton<ProjectEditorView>(
-          icon: Icon(_getViewModeIcon(viewMode)),
-          tooltip: 'View Mode',
-          onSelected: onViewModeChanged,
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              value: ProjectEditorView.editor,
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.edit,
-                    size: Dimens.iconSizeS,
-                    color: viewMode == ProjectEditorView.editor
-                        ? Theme.of(context).colorScheme.primary
-                        : null,
-                  ),
-                  const SizedBox(width: Dimens.halfSpacing),
-                  Text(
-                    'Editor',
-                    style: TextStyle(
-                      color: viewMode == ProjectEditorView.editor
-                          ? Theme.of(context).colorScheme.primary
-                          : null,
-                      fontWeight: viewMode == ProjectEditorView.editor
-                          ? FontWeight.w600
-                          : null,
-                    ),
-                  ),
-                ],
-              ),
+    );
+  }
+
+  PopupMenuItem<ProjectEditorView> _buildViewModeMenuItem(
+    BuildContext context,
+    ProjectEditorView value,
+    IconData icon,
+    String label,
+  ) {
+    final isSelected = viewMode == value;
+    return PopupMenuItem(
+      value: value,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: isSelected
+            ? BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(6),
+              )
+            : null,
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
-            PopupMenuItem(
-              value: ProjectEditorView.preview,
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.visibility,
-                    size: Dimens.iconSizeS,
-                    color: viewMode == ProjectEditorView.preview
-                        ? Theme.of(context).colorScheme.primary
-                        : null,
-                  ),
-                  const SizedBox(width: Dimens.halfSpacing),
-                  Text(
-                    'Preview',
-                    style: TextStyle(
-                      color: viewMode == ProjectEditorView.preview
-                          ? Theme.of(context).colorScheme.primary
-                          : null,
-                      fontWeight: viewMode == ProjectEditorView.preview
-                          ? FontWeight.w600
-                          : null,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: ProjectEditorView.split,
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.view_column,
-                    size: Dimens.iconSizeS,
-                    color: viewMode == ProjectEditorView.split
-                        ? Theme.of(context).colorScheme.primary
-                        : null,
-                  ),
-                  const SizedBox(width: Dimens.halfSpacing),
-                  Text(
-                    'Split',
-                    style: TextStyle(
-                      color: viewMode == ProjectEditorView.split
-                          ? Theme.of(context).colorScheme.primary
-                          : null,
-                      fontWeight: viewMode == ProjectEditorView.split
-                          ? FontWeight.w600
-                          : null,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: ProjectEditorView.git,
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.source,
-                    size: Dimens.iconSizeS,
-                    color: viewMode == ProjectEditorView.git
-                        ? Theme.of(context).colorScheme.primary
-                        : null,
-                  ),
-                  const SizedBox(width: Dimens.halfSpacing),
-                  Text(
-                    'Git',
-                    style: TextStyle(
-                      color: viewMode == ProjectEditorView.git
-                          ? Theme.of(context).colorScheme.primary
-                          : null,
-                      fontWeight: viewMode == ProjectEditorView.git
-                          ? FontWeight.w600
-                          : null,
-                    ),
-                  ),
-                ],
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: isSelected ? Theme.of(context).colorScheme.primary : null,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
               ),
             ),
           ],
         ),
-        
-        // More options
-        PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert),
-          onSelected: (value) {
-            switch (value) {
-              case 'new_file':
-                onNewFile();
-                break;
-              case 'new_folder':
-                onNewFolder();
-                break;
-              case 'toggle_preview':
-                onTogglePreview();
-                break;
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'new_file',
-              child: Row(
-                children: [
-                  Icon(Icons.insert_drive_file, size: Dimens.iconSizeS),
-                  SizedBox(width: Dimens.halfSpacing),
-                  Text('New File'),
-                ],
+      ),
+    );
+  }
+
+  PopupMenuItem<String> _buildMenuItem(
+    BuildContext context,
+    String value,
+    IconData icon,
+    String label,
+  ) {
+    return PopupMenuItem(
+      value: value,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
               ),
             ),
-            const PopupMenuItem(
-              value: 'new_folder',
-              child: Row(
-                children: [
-                  Icon(Icons.folder, size: Dimens.iconSizeS),
-                  SizedBox(width: Dimens.halfSpacing),
-                  Text('New Folder'),
-                ],
-              ),
-            ),
-            if (viewMode == ProjectEditorView.editor || viewMode == ProjectEditorView.preview)
-              PopupMenuItem(
-                value: 'toggle_preview',
-                child: Row(
-                  children: [
-                    Icon(
-                      isPreviewVisible ? Icons.visibility_off : Icons.visibility,
-                      size: Dimens.iconSizeS,
-                    ),
-                    const SizedBox(width: Dimens.halfSpacing),
-                    Text(isPreviewVisible ? 'Hide Preview' : 'Show Preview'),
-                  ],
-                ),
-              ),
           ],
         ),
-      ],
+      ),
     );
   }
   
   IconData _getViewModeIcon(ProjectEditorView mode) {
     switch (mode) {
       case ProjectEditorView.editor:
-        return Icons.edit;
+        return Icons.edit_outlined;
       case ProjectEditorView.preview:
-        return Icons.visibility;
+        return Icons.visibility_outlined;
       case ProjectEditorView.split:
-        return Icons.view_column;
+        return Icons.view_column_outlined;
       case ProjectEditorView.git:
-        return Icons.source;
+        return Icons.source_outlined;
       case ProjectEditorView.fileTree:
-        return Icons.folder;
+        return Icons.folder_outlined;
     }
   }
 }

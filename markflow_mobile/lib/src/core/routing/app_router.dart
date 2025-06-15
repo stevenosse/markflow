@@ -4,6 +4,7 @@ import 'package:markflow/src/datasource/models/project.dart';
 import 'package:markflow/src/features/projects/ui/projects_screen.dart';
 import 'package:markflow/src/features/projects/ui/project_editor_screen.dart';
 import 'package:markflow/src/features/settings/ui/settings_screen.dart';
+import 'package:markflow/src/features/shortcuts/ui/shortcuts_screen.dart';
 
 part 'app_router.gr.dart';
 
@@ -14,5 +15,6 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: ProjectsRoute.page, path: '/', initial: true),
     AutoRoute(page: ProjectEditorRoute.page, path: '/editor'),
     AutoRoute(page: SettingsRoute.page, path: '/settings'),
+    AutoRoute(page: ShortcutsRoute.page, path: '/shortcuts'),
   ];
 }

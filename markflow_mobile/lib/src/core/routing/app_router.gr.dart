@@ -88,3 +88,19 @@ class SettingsRoute extends PageRouteInfo<void> {
     },
   );
 }
+
+/// generated route for
+/// [ShortcutsScreen]
+class ShortcutsRoute extends PageRouteInfo<void> {
+  const ShortcutsRoute({List<PageRouteInfo>? children})
+      : super(ShortcutsRoute.name, initialChildren: children);
+
+  static const String name = 'ShortcutsRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const ShortcutsScreen();
+    },
+  );
+}

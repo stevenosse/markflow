@@ -21,13 +21,15 @@ class Dimens {
   static const double inputRadius = 12.0;
   static const double chipRadius = 20.0;
 
-  // Icon Sizes
-  static const double iconSize = 24.0;
+  // Icon sizes
+  static const double iconSizeXS = 12.0;
+  static const double iconSizeS = 16.0;
   static const double iconSizeM = 20.0;
-  static const double iconSizeS = 18.0;
-  static const double iconSizeXS = 16.0;
-  static const double iconSizeL = 32.0;
-  static const double iconSizeXL = 48.0;
+  static const double iconSizeL = 24.0;
+  static const double iconSizeXL = 32.0;
+
+  // Spacing variations
+  static const double quarterSpacing = 2.0;
 
   // Button Heights
   static const double buttonHeight = 48.0;

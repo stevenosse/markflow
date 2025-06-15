@@ -7,6 +7,7 @@ import 'package:markflow/src/datasource/models/git_models.dart';
 class ProjectEditorState extends Equatable {
   final Project? project;
   final List<MarkdownFile> files;
+  final List<MarkdownFile> openFiles;
   final MarkdownFile? currentFile;
   final String currentContent;
   final bool hasUnsavedChanges;
@@ -22,6 +23,7 @@ class ProjectEditorState extends Equatable {
   const ProjectEditorState({
     this.project,
     this.files = const [],
+    this.openFiles = const [],
     this.currentFile,
     this.currentContent = '',
     this.hasUnsavedChanges = false,
@@ -75,6 +77,7 @@ class ProjectEditorState extends Equatable {
   ProjectEditorState copyWith({
     Project? project,
     List<MarkdownFile>? files,
+    List<MarkdownFile>? openFiles,
     MarkdownFile? currentFile,
     String? currentContent,
     bool? hasUnsavedChanges,
@@ -90,6 +93,7 @@ class ProjectEditorState extends Equatable {
     return ProjectEditorState(
       project: project ?? this.project,
       files: files ?? this.files,
+      openFiles: openFiles ?? this.openFiles,
       currentFile: currentFile ?? this.currentFile,
       currentContent: currentContent ?? this.currentContent,
       hasUnsavedChanges: hasUnsavedChanges ?? this.hasUnsavedChanges,
@@ -137,6 +141,7 @@ class ProjectEditorState extends Equatable {
   List<Object?> get props => [
     project,
     files,
+    openFiles,
     currentFile,
     currentContent,
     hasUnsavedChanges,
@@ -149,6 +154,42 @@ class ProjectEditorState extends Equatable {
     currentView,
     isPreviewMode,
   ];
+
+  /// Add methods for managing open files
+  ProjectEditorState openFile(MarkdownFile file) {
+    final newOpenFiles = List<MarkdownFile>.from(openFiles);
+    if (!newOpenFiles.any((f) => f.absolutePath == file.absolutePath)) {
+      newOpenFiles.add(file);
+    }
+    return copyWith(
+      openFiles: newOpenFiles,
+      currentFile: file,
+    );
+  }
+
+  ProjectEditorState closeFile(MarkdownFile file) {
+    final newOpenFiles = openFiles.where((f) => f.absolutePath != file.absolutePath).toList();
+    MarkdownFile? newCurrentFile = currentFile;
+    
+    if (currentFile?.absolutePath == file.absolutePath) {
+      newCurrentFile = newOpenFiles.isNotEmpty ? newOpenFiles.last : null;
+    }
+    
+    return copyWith(
+      openFiles: newOpenFiles,
+      currentFile: newCurrentFile,
+      currentContent: newCurrentFile?.content ?? '',
+      hasUnsavedChanges: false,
+    );
+  }
+
+  ProjectEditorState switchToFile(MarkdownFile file) {
+    return copyWith(
+      currentFile: file,
+      currentContent: file.content,
+      hasUnsavedChanges: false,
+    );
+  }
 }
 
 /// Different views in the project editor

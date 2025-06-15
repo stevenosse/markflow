@@ -91,8 +91,8 @@ class ProjectEditorNotifier extends ValueNotifier<ProjectEditorState> {
         return;
       }
 
-      value = value.copyWith(
-        currentFile: loadedFile,
+      // Use the new openFile method from state
+      value = value.openFile(loadedFile).copyWith(
         currentContent: loadedFile.content,
         hasUnsavedChanges: false,
       );
@@ -497,6 +497,54 @@ class ProjectEditorNotifier extends ValueNotifier<ProjectEditorState> {
       value = value.copyWith(recentCommits: commits);
     } catch (e) {
       _logger.error('Failed to refresh commit history', e);
+    }
+  }
+
+  /// Close a file tab
+  Future<void> closeFile(MarkdownFile file) async {
+    try {
+      // Save current file if it has unsaved changes and it's the file being closed
+      if (value.hasUnsavedChanges && value.currentFile?.absolutePath == file.absolutePath) {
+        await _saveCurrentFile();
+      }
+
+      value = value.closeFile(file);
+
+      // If we switched to a different file, start auto-save
+      if (value.currentFile != null) {
+        _startAutoSave();
+      } else {
+        _autoSaveTimer?.cancel();
+      }
+    } catch (e) {
+      _logger.error('Failed to close file', e);
+      value = value.setError('Failed to close file: ${e.toString()}');
+    }
+  }
+
+  /// Switch to an already open file
+  Future<void> switchToFile(MarkdownFile file) async {
+    try {
+      // Save current file if it has unsaved changes
+      if (value.hasUnsavedChanges && value.currentFile != null) {
+        await _saveCurrentFile();
+      }
+
+      // Load the file content if needed
+      final loadedFile = await _fileRepository.getFile(file.absolutePath);
+      if (loadedFile == null) {
+        value = value.setError('Failed to load file: ${file.name}');
+        return;
+      }
+
+      value = value.switchToFile(loadedFile).copyWith(
+        currentContent: loadedFile.content,
+      );
+
+      _startAutoSave();
+    } catch (e) {
+      _logger.error('Failed to switch to file', e);
+      value = value.setError('Failed to switch to file: ${e.toString()}');
     }
   }
 
