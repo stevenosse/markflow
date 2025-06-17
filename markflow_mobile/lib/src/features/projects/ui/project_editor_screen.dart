@@ -7,7 +7,7 @@ import 'package:markflow/src/datasource/models/project.dart';
 import 'package:markflow/src/features/projects/logic/project_editor/project_editor_notifier.dart';
 import 'package:markflow/src/features/projects/logic/project_editor/project_editor_state.dart';
 import 'package:markflow/src/features/projects/ui/widgets/file_tree_panel.dart';
-import 'package:markflow/src/features/projects/ui/widgets/enhanced_markdown_editor.dart';
+import 'package:markflow/src/features/projects/ui/widgets/markdown_editor.dart';
 import 'package:markflow/src/features/projects/ui/widgets/markdown_preview.dart';
 import 'package:markflow/src/features/projects/ui/widgets/git_panel.dart';
 
@@ -188,7 +188,7 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
         const VerticalDivider(width: 1),
         Expanded(
           child: state.currentFile != null
-              ? EnhancedMarkdownEditor(
+              ? MarkdownEditor(
                   openFiles: state.openFiles,
                   activeFile: state.currentFile!,
                   content: state.currentContent,
@@ -249,7 +249,7 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
         const VerticalDivider(width: 1),
         if (state.currentFile != null) ...[
           Expanded(
-            child: EnhancedMarkdownEditor(
+            child: MarkdownEditor(
               openFiles: state.openFiles,
               activeFile: state.currentFile!,
               content: state.currentContent,

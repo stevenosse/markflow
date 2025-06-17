@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:markflow/src/core/theme/dimens.dart';
 import 'package:markflow/src/datasource/models/markdown_file.dart';
 
-class EnhancedMarkdownEditor extends StatefulWidget {
+class MarkdownEditor extends StatefulWidget {
   final List<MarkdownFile> openFiles;
   final MarkdownFile? activeFile;
   final String content;
@@ -11,7 +11,7 @@ class EnhancedMarkdownEditor extends StatefulWidget {
   final ValueChanged<MarkdownFile> onFileClose;
   final bool isLoading;
   
-  const EnhancedMarkdownEditor({
+  const MarkdownEditor({
     super.key,
     required this.openFiles,
     required this.activeFile,
@@ -23,10 +23,10 @@ class EnhancedMarkdownEditor extends StatefulWidget {
   });
   
   @override
-  State<EnhancedMarkdownEditor> createState() => _EnhancedMarkdownEditorState();
+  State<MarkdownEditor> createState() => _MarkdownEditorState();
 }
 
-class _EnhancedMarkdownEditorState extends State<EnhancedMarkdownEditor> with TickerProviderStateMixin {
+class _MarkdownEditorState extends State<MarkdownEditor> with TickerProviderStateMixin {
   late final TextEditingController _controller;
   late final FocusNode _focusNode;
   late final ScrollController _scrollController;
@@ -40,7 +40,7 @@ class _EnhancedMarkdownEditorState extends State<EnhancedMarkdownEditor> with Ti
   }
   
   @override
-  void didUpdateWidget(EnhancedMarkdownEditor oldWidget) {
+  void didUpdateWidget(MarkdownEditor oldWidget) {
     super.didUpdateWidget(oldWidget);
     
     if (widget.content != oldWidget.content && widget.content != _controller.text) {
