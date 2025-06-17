@@ -244,13 +244,35 @@ class WelcomeContent extends StatelessWidget {
   }
 }
 
-class GitConfigContent extends StatelessWidget {
+class GitConfigContent extends StatefulWidget {
   final OnboardingState state;
 
   const GitConfigContent({
     super.key,
     required this.state,
   });
+
+  @override
+  State<GitConfigContent> createState() => _GitConfigContentState();
+}
+
+class _GitConfigContentState extends State<GitConfigContent> {
+  final _gitUserNameController = TextEditingController();
+  final _gitUserEmailController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _gitUserEmailController.text = widget.state.gitUserEmail;
+    _gitUserNameController.text = widget.state.gitUserName;
+  }
+
+  @override
+  void dispose() {
+    _gitUserEmailController.dispose();
+    _gitUserNameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -265,14 +287,13 @@ class GitConfigContent extends StatelessWidget {
         ),
         const SizedBox(height: Dimens.doubleSpacing),
         TextField(
-          decoration: const InputDecoration(
-            labelText: 'Your name',
-            hintText: 'John Doe',
-            border: OutlineInputBorder(),
-          ),
-          onChanged: notifier.setGitUserName,
-          controller: TextEditingController(text: state.gitUserName),
-        ),
+            decoration: const InputDecoration(
+              labelText: 'Your name',
+              hintText: 'John Doe',
+              border: OutlineInputBorder(),
+            ),
+            onChanged: notifier.setGitUserName,
+            controller: _gitUserNameController),
         const SizedBox(height: Dimens.spacing),
         TextField(
           decoration: const InputDecoration(
@@ -281,7 +302,7 @@ class GitConfigContent extends StatelessWidget {
             border: OutlineInputBorder(),
           ),
           onChanged: notifier.setGitUserEmail,
-          controller: TextEditingController(text: state.gitUserEmail),
+          controller: _gitUserEmailController,
         ),
         const SizedBox(height: Dimens.spacing),
         Text(
