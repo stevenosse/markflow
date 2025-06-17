@@ -8,6 +8,7 @@ import 'package:markflow/src/shared/locator.dart';
 /// Service for handling platform-specific path configuration
 class PathConfigService {
   static const String _basePathKey = 'markflow_base_path';
+  static const String _onboardingCompletedKey = 'onboarding_completed';
 
   final AppLogger _logger;
   final Storage _storage;
@@ -71,6 +72,39 @@ class PathConfigService {
   Future<String> getProjectPath(String projectName) async {
     final basePath = await getProjectsBasePath();
     return path.join(basePath, projectName);
+  }
+
+  /// Check if onboarding has been completed
+  Future<bool> isOnboardingCompleted() async {
+    try {
+      final completed = await _storage.read<bool>(key: _onboardingCompletedKey);
+      return completed ?? false;
+    } catch (e) {
+      _logger.error('Error checking onboarding status: $e');
+      return false;
+    }
+  }
+
+  /// Mark onboarding as completed
+  Future<bool> setOnboardingCompleted() async {
+    try {
+      await _storage.write(key: _onboardingCompletedKey, value: true);
+      _logger.info('Onboarding marked as completed');
+      return true;
+    } catch (e) {
+      _logger.error('Error setting onboarding completed: $e');
+      return false;
+    }
+  }
+
+  /// Get base path (alias for getProjectsBasePath for onboarding)
+  Future<String> getBasePath() async {
+    return getProjectsBasePath();
+  }
+
+  /// Set base path (alias for setProjectsBasePath for onboarding)
+  Future<bool> setBasePath(String basePath) async {
+    return setProjectsBasePath(basePath);
   }
 
   /// Get the default documents directory based on platform

@@ -758,4 +758,58 @@ class GitService {
       return false;
     }
   }
+  
+  /// Get global Git configuration
+  Future<Map<String, String>> getGlobalConfig() async {
+    try {
+      final result = await Process.run(
+        'git',
+        ['config', '--global', '--list'],
+      );
+      
+      if (result.exitCode != 0) {
+        _logger.error('Failed to get global Git config: ${result.stderr}');
+        return {};
+      }
+      
+      final output = result.stdout as String;
+      final config = <String, String>{};
+      final lines = output.split('\n').where((line) => line.isNotEmpty);
+      
+      for (final line in lines) {
+        final parts = line.split('=');
+        if (parts.length != 2) continue;
+        
+        config[parts[0]] = parts[1];
+      }
+      
+      return config;
+    } catch (e) {
+      _logger.error('Error getting global Git config: $e');
+      return {};
+    }
+  }
+  
+  /// Set global Git configuration
+  Future<bool> setGlobalConfig(Map<String, String> config) async {
+    try {
+      for (final entry in config.entries) {
+        final result = await Process.run(
+          'git',
+          ['config', '--global', entry.key, entry.value],
+        );
+        
+        if (result.exitCode != 0) {
+          _logger.error('Failed to set global Git config ${entry.key}: ${result.stderr}');
+          return false;
+        }
+      }
+      
+      _logger.info('Global Git config updated successfully');
+      return true;
+    } catch (e) {
+      _logger.error('Error setting global Git config: $e');
+      return false;
+    }
+  }
 }
