@@ -2,7 +2,29 @@
 
 A powerful, cross-platform markdown editor built with Flutter, designed for seamless writing and project management with integrated Git version control.
 
-![MarkFlow Logo](assets/images/mflogo.png)
+![MarkFlow Logo](markflow_mobile/assets/images/mflogo.png)
+
+## 📸 Screenshots
+
+### Home & Project Management
+![Home Screen](screenshots/home.png)
+*Clean project overview with easy access to recent projects and quick actions*
+
+### Onboarding Experience
+![Onboarding](screenshots/onboarding.png)
+*Intuitive setup process to get you started quickly*
+
+### Advanced Markdown Editor
+![Editor Interface](screenshots/editor.png)
+*Dual-pane editor with live preview, syntax highlighting, and comprehensive toolbar*
+
+### Git Integration
+![Git Panel](screenshots/git.png)
+*Built-in Git panel for seamless version control with visual status indicators*
+
+### Settings & Customization
+![Settings](screenshots/settings.png)
+*Comprehensive settings for personalizing your editing experience*
 
 ## ✨ Features
 
