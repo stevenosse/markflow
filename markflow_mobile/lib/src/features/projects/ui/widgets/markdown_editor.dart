@@ -261,37 +261,120 @@ class _MarkdownEditorState extends State<MarkdownEditor> with TickerProviderStat
     return Container(
       padding: const EdgeInsets.all(Dimens.editorPadding),
       child: ListenableBuilder(
-        listenable: _settingsService,
-        builder: (context, _) => TextField(
-           controller: _controller,
-          focusNode: _focusNode,
-          scrollController: _scrollController,
-          maxLines: null,
-          expands: true,
-          textAlignVertical: TextAlignVertical.top,
-          style: TextStyle(
-            fontSize: _settingsService.editorFontSize,
-            height: _settingsService.editorLineHeight,
-            fontFamily: 'SF Mono',
-            fontFamilyFallback: const ['Monaco', 'Consolas', 'monospace'],
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        decoration: InputDecoration(
-          hintText: 'Start writing your markdown...',
-          hoverColor: Colors.transparent,
-          hintStyle: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-          ),
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          contentPadding: EdgeInsets.zero,
-        ),
-          onChanged: widget.onContentChanged,
-          keyboardType: TextInputType.multiline,
-          textInputAction: TextInputAction.newline,
-        ),
+        listenable: Listenable.merge([_settingsService, _controller]),
+        builder: (context, _) {
+          if (_settingsService.showLineNumbers) {
+            return _buildEditorWithLineNumbers(context);
+          } else {
+            return _buildPlainEditor(context);
+          }
+        },
       ),
+    );
+  }
+
+  Widget _buildPlainEditor(BuildContext context) {
+    return TextField(
+      controller: _controller,
+      focusNode: _focusNode,
+      scrollController: _scrollController,
+      maxLines: null,
+      expands: true,
+      textAlignVertical: TextAlignVertical.top,
+      style: TextStyle(
+        fontSize: _settingsService.editorFontSize,
+        height: _settingsService.editorLineHeight,
+        fontFamily: 'SF Mono',
+        fontFamilyFallback: const ['Monaco', 'Consolas', 'monospace'],
+        color: Theme.of(context).colorScheme.onSurface,
+      ),
+      decoration: InputDecoration(
+        hintText: 'Start writing your markdown...',
+        hoverColor: Colors.transparent,
+        hintStyle: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+        ),
+        border: InputBorder.none,
+        enabledBorder: InputBorder.none,
+        focusedBorder: InputBorder.none,
+        contentPadding: EdgeInsets.zero,
+      ),
+      onChanged: widget.onContentChanged,
+      keyboardType: TextInputType.multiline,
+      textInputAction: TextInputAction.newline,
+    );
+  }
+
+  Widget _buildEditorWithLineNumbers(BuildContext context) {
+    final lineCount = _controller.text.split('\n').length;
+    final lineHeight = _settingsService.editorFontSize * _settingsService.editorLineHeight;
+    
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Line numbers gutter
+        Container(
+          width: 50,
+          padding: const EdgeInsets.only(right: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: List.generate(lineCount, (index) {
+              return Container(
+                height: lineHeight,
+                alignment: Alignment.centerRight,
+                child: Text(
+                  '${index + 1}',
+                  style: TextStyle(
+                    fontSize: _settingsService.editorFontSize * 0.9,
+                    height: _settingsService.editorLineHeight,
+                    fontFamily: 'SF Mono',
+                    fontFamilyFallback: const ['Monaco', 'Consolas', 'monospace'],
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
+        // Vertical divider
+        Container(
+          width: 1,
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
+          margin: const EdgeInsets.only(right: 8),
+        ),
+        // Text editor
+        Expanded(
+          child: TextField(
+            controller: _controller,
+            focusNode: _focusNode,
+            scrollController: _scrollController,
+            maxLines: null,
+            expands: true,
+            textAlignVertical: TextAlignVertical.top,
+            style: TextStyle(
+              fontSize: _settingsService.editorFontSize,
+              height: _settingsService.editorLineHeight,
+              fontFamily: 'SF Mono',
+              fontFamilyFallback: const ['Monaco', 'Consolas', 'monospace'],
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Start writing your markdown...',
+              hoverColor: Colors.transparent,
+              hintStyle: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+            ),
+            onChanged: widget.onContentChanged,
+            keyboardType: TextInputType.multiline,
+            textInputAction: TextInputAction.newline,
+          ),
+        ),
+      ],
     );
   }
 
