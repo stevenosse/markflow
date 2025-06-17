@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:markflow/src/core/theme/dimens.dart';
 import 'package:markflow/src/datasource/models/markdown_file.dart';
+import 'package:markflow/src/shared/components/dialogs/confirmation_dialog.dart';
+import 'package:markflow/src/shared/components/dialogs/create_file_dialog.dart';
+import 'package:markflow/src/shared/components/dialogs/create_folder_dialog.dart';
 import 'package:markflow/src/shared/components/popovers/rename_popover.dart';
 
 class FileTreePanel extends StatefulWidget {
@@ -349,30 +352,18 @@ class _FileTreePanelState extends State<FileTreePanel> {
     }
   }
 
-  void _showDeleteFileDialog(BuildContext context, MarkdownFile file) {
-    showDialog(
+  void _showDeleteFileDialog(BuildContext context, MarkdownFile file) async {
+    final confirmed = await ConfirmationDialog.show(
       context: context,
-      builder: (context) => AlertDialog.adaptive(
-        title: const Text('Delete File'),
-        content: Text('Are you sure you want to delete "${file.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              widget.onFileDeleted(file);
-              Navigator.of(context).pop();
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      title: 'Delete File',
+      message: 'Are you sure you want to delete "${file.name}"?',
+      confirmText: 'Delete',
+      confirmButtonColor: Theme.of(context).colorScheme.error,
     );
+    
+    if (confirmed) {
+      widget.onFileDeleted(file);
+    }
   }
 }
 
@@ -508,82 +499,24 @@ class _DesktopAddButton extends StatelessWidget {
     );
   }
 
-  void _showCreateFileDialog(BuildContext context) {
-    String fileName = '';
-
-    showDialog(
+  void _showCreateFileDialog(BuildContext context) async {
+    final fileName = await CreateFileDialog.show(
       context: context,
-      builder: (context) => AlertDialog.adaptive(
-        title: const Text('Create New File'),
-        content: TextField(
-          decoration: const InputDecoration(
-            labelText: 'File name',
-            hintText: 'example.md',
-          ),
-          onChanged: (value) => fileName = value,
-          onSubmitted: (value) {
-            if (value.isNotEmpty) {
-              onFileCreated(value);
-              Navigator.of(context).pop();
-            }
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (fileName.isNotEmpty) {
-                onFileCreated(fileName);
-                Navigator.of(context).pop();
-              }
-            },
-            child: const Text('Create'),
-          ),
-        ],
-      ),
     );
+    
+    if (fileName != null && fileName.isNotEmpty) {
+      onFileCreated(fileName);
+    }
   }
 
-  void _showCreateFolderDialog(BuildContext context) {
-    String folderName = '';
-
-    showDialog(
+  void _showCreateFolderDialog(BuildContext context) async {
+    final folderName = await CreateFolderDialog.show(
       context: context,
-      builder: (context) => AlertDialog.adaptive(
-        title: const Text('Create New Folder'),
-        content: TextField(
-          decoration: const InputDecoration(
-            labelText: 'Folder name',
-            hintText: 'docs',
-          ),
-          onChanged: (value) => folderName = value,
-          onSubmitted: (value) {
-            if (value.isNotEmpty) {
-              onFolderCreated(value);
-              Navigator.of(context).pop();
-            }
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (folderName.isNotEmpty) {
-                onFolderCreated(folderName);
-                Navigator.of(context).pop();
-              }
-            },
-            child: const Text('Create'),
-          ),
-        ],
-      ),
     );
+    
+    if (folderName != null && folderName.isNotEmpty) {
+      onFolderCreated(folderName);
+    }
   }
 }
 

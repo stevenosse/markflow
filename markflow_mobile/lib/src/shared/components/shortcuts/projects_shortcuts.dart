@@ -5,6 +5,7 @@ import 'package:markflow/src/core/routing/app_router.dart';
 import 'package:markflow/src/features/projects/logic/project_list/project_list_notifier.dart';
 import 'package:markflow/src/features/projects/logic/project_list/project_list_state.dart';
 import 'package:markflow/src/features/projects/ui/widgets/project_action_dialog.dart';
+import 'package:markflow/src/shared/components/dialogs/confirmation_dialog.dart';
 
 /// Widget that provides projects screen specific keyboard shortcuts
 class ProjectsShortcuts extends StatelessWidget {
@@ -159,22 +160,12 @@ class ProjectsShortcuts extends StatelessWidget {
       if (filteredProjects.isNotEmpty) {
         final project = filteredProjects.first;
         
-        final confirmed = await showDialog<bool>(
+        final confirmed = await ConfirmationDialog.show(
           context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Delete Project'),
-            content: Text('Are you sure you want to delete "${project.name}"?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Delete'),
-              ),
-            ],
-          ),
+          title: 'Delete Project',
+          message: 'Are you sure you want to delete "${project.name}"?',
+          confirmText: 'Delete',
+          confirmButtonColor: Theme.of(context).colorScheme.error,
         );
         
         if (confirmed == true) {

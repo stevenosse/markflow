@@ -10,6 +10,7 @@ import 'package:markflow/src/features/projects/ui/widgets/project_search_bar.dar
 import 'package:markflow/src/features/projects/ui/widgets/project_filter_tabs.dart';
 import 'package:markflow/src/features/projects/ui/widgets/empty_projects_state.dart';
 import 'package:markflow/src/features/projects/ui/widgets/project_action_dialog.dart';
+import 'package:markflow/src/shared/components/dialogs/confirmation_dialog.dart';
 import 'package:markflow/src/shared/components/shortcuts/projects_shortcuts.dart';
 import 'package:provider/provider.dart';
 
@@ -72,39 +73,16 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   }
 
   void _showDeleteProjectDialog(BuildContext context, Project project) {
-    showDialog<bool>(
+    ConfirmationDialog.show(
       context: context,
-      builder: (context) => AlertDialog.adaptive(
-        title: const Text('Delete Project'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Are you sure you want to delete "${project.name}"?'),
-            const SizedBox(height: Dimens.spacing),
-            const Text(
-              'This will only remove the project from MarkFlow. '
-              'Your files will remain on disk.',
-              style: TextStyle(fontSize: 12),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      title: 'Delete Project',
+      message: 'Are you sure you want to delete "${project.name}"?\n\n'
+               'This will only remove the project from MarkFlow. '
+               'Your files will remain on disk.',
+      confirmText: 'Delete',
+      confirmButtonColor: Theme.of(context).colorScheme.error,
     ).then((confirmed) {
-      if (confirmed == true && context.mounted) {
+      if (confirmed && context.mounted) {
         context.read<ProjectListNotifier>().deleteProject(project);
       }
     });

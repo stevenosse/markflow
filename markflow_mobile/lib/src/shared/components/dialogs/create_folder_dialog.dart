@@ -216,15 +216,6 @@ class _CreateFolderDialogContentState
       ),
       actions: [
         TextButton(
-          onPressed: _isValid ? _handleCreate : null,
-          style: TextButton.styleFrom(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.zero),
-            ),
-          ),
-          child: const Text('Create folder'),
-        ),
-        TextButton(
           onPressed: () => Navigator.of(context).pop(),
           style: TextButton.styleFrom(
             shape: RoundedRectangleBorder(
@@ -232,6 +223,15 @@ class _CreateFolderDialogContentState
             ),
           ),
           child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: _isValid ? _handleCreate : null,
+          style: TextButton.styleFrom(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.zero),
+            ),
+          ),
+          child: const Text('Create folder'),
         ),
       ],
     );

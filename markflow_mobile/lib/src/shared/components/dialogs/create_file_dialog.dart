@@ -194,15 +194,6 @@ class _CreateFileDialogContentState extends State<_CreateFileDialogContent> {
       ),
       actions: [
         TextButton(
-          onPressed: _isValid ? _handleCreate : null,
-          style: TextButton.styleFrom(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.zero),
-            ),
-          ),
-          child: const Text('Create File'),
-        ),
-        TextButton(
           onPressed: () => Navigator.of(context).pop(),
           style: TextButton.styleFrom(
             shape: RoundedRectangleBorder(
@@ -210,6 +201,15 @@ class _CreateFileDialogContentState extends State<_CreateFileDialogContent> {
             ),
           ),
           child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: _isValid ? _handleCreate : null,
+          style: TextButton.styleFrom(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.zero),
+            ),
+          ),
+          child: const Text('Create File'),
         ),
       ],
     );
