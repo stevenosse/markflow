@@ -106,7 +106,7 @@ class _ProjectActionDialogState extends State<ProjectActionDialog>
             children: [
               _buildHeader(),
               const SizedBox(height: Dimens.spacing),
-              if (!widget.hasExistingProjects) _buildTabs(),
+              _buildTabs(),
               const SizedBox(height: Dimens.spacing),
               Expanded(
                 child: widget.hasExistingProjects
@@ -133,13 +133,13 @@ class _ProjectActionDialogState extends State<ProjectActionDialog>
     String title;
     switch (_currentAction) {
       case ProjectActionType.create:
-        title = 'Create New Project';
+        title = 'Create New project';
         break;
       case ProjectActionType.import:
-        title = 'Import Existing Project';
+        title = 'Import existing project';
         break;
       case ProjectActionType.clone:
-        title = 'Clone Git Repository';
+        title = 'Clone git repository';
         break;
     }
 
@@ -431,7 +431,7 @@ class _ProjectActionDialogState extends State<ProjectActionDialog>
           final clonePath = _clonePathController.text.trim().isNotEmpty
               ? _clonePathController.text.trim()
               : null;
-          
+
           result = CloneRepositoryResult(
             url: _cloneUrlController.text.trim(),
             name: cloneName,
@@ -445,8 +445,6 @@ class _ProjectActionDialogState extends State<ProjectActionDialog>
       Navigator.of(context).pop(result);
     }
   }
-
-
 
   String _extractRepoNameFromUrl(String url) {
     // Extract repository name from URL

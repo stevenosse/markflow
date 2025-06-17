@@ -145,11 +145,11 @@ class ProjectListNotifier extends ValueNotifier<ProjectListState> {
       if (index != -1) {
         updatedProjects[index] = updatedProject;
       }
-      
+
       final updatedFavorites = updatedProject.isFavorite
           ? [...value.favoriteProjects, updatedProject]
           : value.favoriteProjects.where((p) => p.id != project.id).toList();
-      
+
       value = value.copyWith(
         projects: updatedProjects,
         favoriteProjects: updatedFavorites,
@@ -167,9 +167,7 @@ class ProjectListNotifier extends ValueNotifier<ProjectListState> {
   /// Rename a project
   Future<void> renameProject(Project project, String newName) async {
     try {
-      final updatedProject = project.copyWith(
-        name: newName,
-      );
+      final updatedProject = project.copyWith(name: newName);
 
       // Update state immediately for UI responsiveness
       final updatedProjects = List<Project>.from(value.projects);
@@ -177,21 +175,22 @@ class ProjectListNotifier extends ValueNotifier<ProjectListState> {
       if (index != -1) {
         updatedProjects[index] = updatedProject;
       }
-      
+
       // Update in favorites list if present
       final updatedFavorites = List<Project>.from(value.favoriteProjects);
-      final favoriteIndex = updatedFavorites.indexWhere((p) => p.id == project.id);
+      final favoriteIndex =
+          updatedFavorites.indexWhere((p) => p.id == project.id);
       if (favoriteIndex != -1) {
         updatedFavorites[favoriteIndex] = updatedProject;
       }
-      
+
       // Update in recent projects list if present
       final updatedRecents = List<Project>.from(value.recentProjects);
       final recentIndex = updatedRecents.indexWhere((p) => p.id == project.id);
       if (recentIndex != -1) {
         updatedRecents[recentIndex] = updatedProject;
       }
-      
+
       value = value.copyWith(
         projects: updatedProjects,
         favoriteProjects: updatedFavorites,

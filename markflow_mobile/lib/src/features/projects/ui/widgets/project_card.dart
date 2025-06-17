@@ -174,7 +174,7 @@ class _MenuButton extends StatelessWidget {
         // Rename button with popover
         RenamePopover(
           initialValue: project.name,
-          title: 'Rename Project',
+          title: 'Rename project',
           hintText: 'Enter new project name',
           onRename: onRename,
           onCancel: () {},

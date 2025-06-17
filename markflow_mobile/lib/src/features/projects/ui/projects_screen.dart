@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:markflow/src/core/routing/app_router.dart';
 import 'package:markflow/src/core/theme/dimens.dart';
-import 'package:markflow/src/core/services/keyboard_shortcuts_service.dart';
-import 'package:markflow/src/core/services/keyboard_actions.dart';
 import 'package:markflow/src/datasource/models/project.dart';
 import 'package:markflow/src/features/projects/logic/project_list/project_list_notifier.dart';
 import 'package:markflow/src/features/projects/logic/project_list/project_list_state.dart';
@@ -12,6 +10,7 @@ import 'package:markflow/src/features/projects/ui/widgets/project_search_bar.dar
 import 'package:markflow/src/features/projects/ui/widgets/project_filter_tabs.dart';
 import 'package:markflow/src/features/projects/ui/widgets/empty_projects_state.dart';
 import 'package:markflow/src/features/projects/ui/widgets/project_action_dialog.dart';
+import 'package:markflow/src/shared/components/shortcuts/projects_shortcuts.dart';
 import 'package:provider/provider.dart';
 
 @RoutePage()
@@ -54,8 +53,19 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
       if (result != null && context.mounted) {
         if (result is CreateProjectResult) {
           await context.read<ProjectListNotifier>().createProject(
-                name: result.name,
-              );
+            name: result.name,
+          );
+        } else if (result is ImportProjectResult) {
+          await context.read<ProjectListNotifier>().importProject(
+            path: result.path,
+            name: result.name,
+          );
+        } else if (result is CloneRepositoryResult) {
+          await context.read<ProjectListNotifier>().cloneRepository(
+            name: result.name ?? 'project',
+            path: result.path ?? '',
+            remoteUrl: result.url,
+          );
         }
       }
     });
@@ -102,35 +112,33 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Shortcuts(
-      shortcuts: KeyboardShortcutsService.instance.projectsShortcuts,
-      child: Actions(
-        actions: KeyboardActions.projectsActions,
-        child: Scaffold(
-          body: ValueListenableBuilder<ProjectListState>(
-            valueListenable: context.read<ProjectListNotifier>(),
-            builder: (context, state, child) {
-              return Column(
-                children: [
-                  DesktopHeader(
+    return ValueListenableBuilder<ProjectListState>(
+      valueListenable: context.read<ProjectListNotifier>(),
+      builder: (context, state, child) {
+        return ProjectsShortcuts(
+          notifier: context.read<ProjectListNotifier>(),
+          state: state,
+          child: Scaffold(
+            body: Column(
+              children: [
+                DesktopHeader(
+                  state: state,
+                  onCreateProject: () => _showCreateProjectDialog(context),
+                ),
+                Expanded(
+                  child: DesktopBody(
                     state: state,
-                    onCreateProject: () => _showCreateProjectDialog(context),
+                    onOpenProject: (project) =>
+                        _openProject(context, project),
+                    onDeleteProject: (project) =>
+                        _showDeleteProjectDialog(context, project),
                   ),
-                  Expanded(
-                    child: DesktopBody(
-                      state: state,
-                      onOpenProject: (project) =>
-                          _openProject(context, project),
-                      onDeleteProject: (project) =>
-                          _showDeleteProjectDialog(context, project),
-                    ),
-                  ),
-                ],
-              );
-            },
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

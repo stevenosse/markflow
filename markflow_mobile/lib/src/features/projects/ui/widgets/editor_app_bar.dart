@@ -36,7 +36,7 @@ class EditorAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: kToolbarHeight,
+      height: kToolbarHeight + Dimens.spacing,
       padding: const EdgeInsets.symmetric(
         horizontal: Dimens.spacing,
         vertical: Dimens.halfSpacing,
@@ -232,10 +232,10 @@ class EditorAppBar extends StatelessWidget implements PreferredSizeWidget {
         color: Theme.of(context)
             .colorScheme
             .surfaceContainerHighest
-            .withValues(alpha: 0.6),
+            .withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(Dimens.buttonRadius),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.6),
           width: 1,
         ),
       ),

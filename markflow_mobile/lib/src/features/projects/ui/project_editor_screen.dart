@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:markflow/src/core/theme/dimens.dart';
-import 'package:markflow/src/core/services/keyboard_shortcuts_service.dart';
-import 'package:markflow/src/core/services/keyboard_actions.dart';
 import 'package:markflow/src/datasource/models/project.dart';
 import 'package:markflow/src/features/projects/logic/project_editor/project_editor_notifier.dart';
 import 'package:markflow/src/features/projects/logic/project_editor/project_editor_state.dart';
@@ -13,6 +11,7 @@ import 'package:markflow/src/features/projects/ui/widgets/git_panel.dart';
 import 'package:markflow/src/features/projects/ui/widgets/editor_app_bar.dart';
 import 'package:markflow/src/shared/components/dialogs/create_file_dialog.dart';
 import 'package:markflow/src/shared/components/dialogs/create_folder_dialog.dart';
+import 'package:markflow/src/shared/components/shortcuts/editor_shortcuts.dart';
 
 @RoutePage()
 class ProjectEditorScreen extends StatefulWidget {
@@ -127,30 +126,28 @@ class ProjectEditorScreenState extends State<ProjectEditorScreen> {
           );
         }
 
-        return Shortcuts(
-          shortcuts: KeyboardShortcutsService.instance.editorShortcuts,
-          child: Actions(
-            actions: KeyboardActions.editorActions,
-            child: Scaffold(
-              body: Column(
-                children: [
-                  EditorAppBar(
-                    project: state.project!,
-                    selectedFile: state.currentFile,
-                    hasUnsavedChanges: state.hasUnsavedChanges,
-                    viewMode: state.currentView,
-                    isPreviewVisible: state.isPreviewMode,
-                    onSave: notifier.saveCurrentFile,
-              onViewModeChanged: notifier.setView,
-              onTogglePreview: notifier.togglePreviewMode,
-                    onNewFile: () => _showCreateFileDialog(context),
-                    onNewFolder: () => _showCreateFolderDialog(context),
-                  ),
-                  Expanded(
-                    child: _buildDesktopBody(context, state),
-                  ),
-                ],
-              ),
+        return EditorShortcuts(
+          notifier: notifier,
+          state: state,
+          child: Scaffold(
+            body: Column(
+              children: [
+                EditorAppBar(
+                  project: state.project!,
+                  selectedFile: state.currentFile,
+                  hasUnsavedChanges: state.hasUnsavedChanges,
+                  viewMode: state.currentView,
+                  isPreviewVisible: state.isPreviewMode,
+                  onSave: notifier.saveCurrentFile,
+                  onViewModeChanged: notifier.setView,
+                  onTogglePreview: notifier.togglePreviewMode,
+                  onNewFile: () => _showCreateFileDialog(context),
+                  onNewFolder: () => _showCreateFolderDialog(context),
+                ),
+                Expanded(
+                  child: _buildDesktopBody(context, state),
+                ),
+              ],
             ),
           ),
         );

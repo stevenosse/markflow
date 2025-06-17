@@ -121,7 +121,6 @@ class _PopoverContent extends StatelessWidget {
     if (renderBox == null) return const SizedBox.shrink();
 
     final buttonPosition = renderBox.localToGlobal(Offset.zero);
-    final buttonSize = renderBox.size;
     final screenSize = MediaQuery.of(context).size;
 
     // Calculate popover position
@@ -129,7 +128,7 @@ class _PopoverContent extends StatelessWidget {
     const popoverHeight = 120.0;
 
     double left = buttonPosition.dx;
-    double top = buttonPosition.dy + buttonSize.height + Dimens.quarterSpacing;
+    double top = buttonPosition.dy + Dimens.spacing;
 
     // Adjust horizontal position if popover would go off screen
     if (left + popoverWidth > screenSize.width) {
@@ -172,9 +171,10 @@ class _PopoverContent extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: Dimens.halfSpacing),
                   TextField(
@@ -187,7 +187,6 @@ class _PopoverContent extends StatelessWidget {
                     ),
                     style: Theme.of(context).textTheme.bodyMedium,
                     onSubmitted: (_) => onRename(),
-                    onTapOutside: (_) => onCancel(),
                   ),
                   const SizedBox(height: Dimens.halfSpacing),
                   Row(
