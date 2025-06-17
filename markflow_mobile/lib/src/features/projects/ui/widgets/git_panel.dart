@@ -12,7 +12,7 @@ class GitPanel extends StatefulWidget {
   final VoidCallback onPush;
   final VoidCallback onPull;
   final VoidCallback onRefresh;
-  
+
   const GitPanel({
     super.key,
     required this.gitStatus,
@@ -25,28 +25,29 @@ class GitPanel extends StatefulWidget {
     required this.onPull,
     required this.onRefresh,
   });
-  
+
   @override
   State<GitPanel> createState() => _GitPanelState();
 }
 
 class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
   late final TabController _tabController;
-  final TextEditingController _commitMessageController = TextEditingController();
-  
+  final TextEditingController _commitMessageController =
+      TextEditingController();
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
   }
-  
+
   @override
   void dispose() {
     _tabController.dispose();
     _commitMessageController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -71,7 +72,7 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
       ),
     );
   }
-  
+
   Widget _buildHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(Dimens.spacing),
@@ -80,7 +81,8 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
           Icon(
             Icons.source,
             size: Dimens.iconSizeS,
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
           ),
           const SizedBox(width: Dimens.halfSpacing),
           Expanded(
@@ -90,15 +92,18 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
                 Text(
                   'Git',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
                 if (widget.currentBranch != null)
                   Text(
                     'Branch: ${widget.currentBranch}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                    ),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.7),
+                        ),
                   ),
               ],
             ),
@@ -130,7 +135,7 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
       ),
     );
   }
-  
+
   Widget _buildTabBar(BuildContext context) {
     return TabBar(
       controller: _tabController,
@@ -156,9 +161,9 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
                   child: Text(
                     '${widget.gitStatus!.changes.length}',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                 ),
             ],
@@ -179,15 +184,18 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .outline
+                        .withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(Dimens.fullRadius),
                   ),
                   child: Text(
                     '${widget.recentCommits.length}',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                 ),
             ],
@@ -196,14 +204,14 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
       ],
     );
   }
-  
+
   Widget _buildChangesTab(BuildContext context) {
     if (widget.gitStatus == null) {
       return const Center(
         child: CircularProgressIndicator(),
       );
     }
-    
+
     if (!widget.gitStatus!.hasChanges) {
       return Center(
         child: Column(
@@ -218,47 +226,54 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
             Text(
               'No changes',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-              ),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.7),
+                  ),
             ),
             const SizedBox(height: Dimens.halfSpacing),
             Text(
               'Your working directory is clean',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-              ),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.5),
+                  ),
             ),
           ],
         ),
       );
     }
-    
+
     return Column(
       children: [
         if (widget.gitStatus!.staged.isNotEmpty) ...[
-          _buildSectionHeader(context, 'Staged Changes', widget.gitStatus!.staged.length),
+          _buildSectionHeader(
+              context, 'Staged Changes', widget.gitStatus!.staged.length),
           ...widget.gitStatus!.staged.map((change) => _buildFileChangeItem(
-            context,
-            change,
-            isStaged: true,
-          )),
+                context,
+                change,
+                isStaged: true,
+              )),
           const Divider(),
         ],
         if (widget.gitStatus!.unstaged.isNotEmpty) ...[
-          _buildSectionHeader(context, 'Unstaged Changes', widget.gitStatus!.unstaged.length),
+          _buildSectionHeader(
+              context, 'Unstaged Changes', widget.gitStatus!.unstaged.length),
           ...widget.gitStatus!.unstaged.map((change) => _buildFileChangeItem(
-            context,
-            change,
-            isStaged: false,
-          )),
+                context,
+                change,
+                isStaged: false,
+              )),
           const Divider(),
         ],
-        if (widget.gitStatus!.staged.isNotEmpty)
-          _buildCommitSection(context),
+        if (widget.gitStatus!.staged.isNotEmpty) _buildCommitSection(context),
       ],
     );
   }
-  
+
   Widget _buildSectionHeader(BuildContext context, String title, int count) {
     return Container(
       padding: const EdgeInsets.all(Dimens.spacing),
@@ -267,8 +282,8 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
           Text(
             title,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+                  fontWeight: FontWeight.w600,
+                ),
           ),
           const SizedBox(width: Dimens.halfSpacing),
           Container(
@@ -277,22 +292,24 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
               vertical: 2,
             ),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+              color:
+                  Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(Dimens.fullRadius),
             ),
             child: Text(
               count.toString(),
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
           ),
         ],
       ),
     );
   }
-  
-  Widget _buildFileChangeItem(BuildContext context, GitFileChange change, {required bool isStaged}) {
+
+  Widget _buildFileChangeItem(BuildContext context, GitFileChange change,
+      {required bool isStaged}) {
     return ListTile(
       dense: true,
       leading: Container(
@@ -334,7 +351,7 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
       ),
     );
   }
-  
+
   Widget _buildCommitSection(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(Dimens.spacing),
@@ -344,8 +361,8 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
           Text(
             'Commit Message',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+                  fontWeight: FontWeight.w600,
+                ),
           ),
           const SizedBox(height: Dimens.halfSpacing),
           TextField(
@@ -358,20 +375,25 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
             minLines: 2,
           ),
           const SizedBox(height: Dimens.spacing),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _commitMessageController.text.isNotEmpty
-                  ? () => widget.onCommit(_commitMessageController.text)
-                  : null,
-              child: const Text('Commit'),
-            ),
+          ListenableBuilder(
+            listenable: _commitMessageController,
+            builder: (context, child) {
+              return SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _commitMessageController.text.isNotEmpty
+                      ? () => widget.onCommit(_commitMessageController.text)
+                      : null,
+                  child: const Text('Commit'),
+                ),
+              );
+            },
           ),
         ],
       ),
     );
   }
-  
+
   Widget _buildHistoryTab(BuildContext context) {
     if (widget.recentCommits.isEmpty) {
       return Center(
@@ -381,27 +403,36 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
             Icon(
               Icons.history,
               size: Dimens.iconSizeXL,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.3),
             ),
             const SizedBox(height: Dimens.spacing),
             Text(
               'No commit history',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-              ),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.7),
+                  ),
             ),
             const SizedBox(height: Dimens.halfSpacing),
             Text(
               'Make your first commit to see history',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-              ),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.5),
+                  ),
             ),
           ],
         ),
       );
     }
-    
+
     return ListView.separated(
       padding: const EdgeInsets.all(Dimens.spacing),
       itemCount: widget.recentCommits.length,
@@ -412,7 +443,7 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
       },
     );
   }
-  
+
   Widget _buildCommitItem(BuildContext context, GitCommit commit) {
     return Container(
       padding: const EdgeInsets.all(Dimens.spacing),
@@ -434,8 +465,8 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
                 child: Text(
                   commit.message,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+                        fontWeight: FontWeight.w500,
+                      ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -449,15 +480,21 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
               Text(
                 commit.author,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                ),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.7),
+                    ),
               ),
               const SizedBox(width: Dimens.spacing),
               Text(
                 _formatDate(commit.timestamp),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-                ),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.5),
+                    ),
               ),
             ],
           ),
@@ -477,9 +514,9 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
                 child: Text(
                   commit.hash.substring(0, 7),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    fontFamily: 'monospace',
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
+                        fontFamily: 'monospace',
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                 ),
               ),
             ],
@@ -488,7 +525,7 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
       ),
     );
   }
-  
+
   Color _getStatusColor(BuildContext context, GitFileStatus status) {
     switch (status) {
       case GitFileStatus.added:
@@ -505,7 +542,7 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
         return Colors.grey;
     }
   }
-  
+
   String _getStatusLabel(GitFileStatus status) {
     switch (status) {
       case GitFileStatus.added:
@@ -522,11 +559,11 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
         return 'U';
     }
   }
-  
+
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
-    
+
     if (difference.inDays > 0) {
       return '${difference.inDays}d ago';
     } else if (difference.inHours > 0) {

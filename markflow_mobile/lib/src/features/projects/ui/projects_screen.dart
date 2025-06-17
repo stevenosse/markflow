@@ -40,211 +40,8 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Shortcuts(
-      shortcuts: KeyboardShortcutsService.instance.projectsShortcuts,
-      child: Actions(
-        actions: KeyboardActions.projectsActions,
-        child: Scaffold(
-          body: ValueListenableBuilder<ProjectListState>(
-            valueListenable: context.read<ProjectListNotifier>(),
-            builder: (context, state, child) {
-              return Column(
-                children: [
-                  _buildDesktopHeader(context, state),
-                  Expanded(
-                    child: _buildDesktopBody(context, state),
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDesktopHeader(BuildContext context, ProjectListState state) {
-    return Container(
-      height: Dimens.desktopHeaderHeight,
-      padding: const EdgeInsets.symmetric(
-        horizontal: Dimens.desktopMainPadding,
-        vertical: Dimens.spacing,
-      ),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          Text(
-            'MarkFlow',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const Spacer(),
-          SizedBox(
-            width: Dimens.desktopSearchBarWidth,
-            child: ProjectSearchBar(
-              searchQuery: state.searchQuery,
-              onSearchChanged: context.read<ProjectListNotifier>().setSearchQuery,
-            ),
-          ),
-          const SizedBox(width: Dimens.desktopSpacing),
-          ElevatedButton.icon(
-            onPressed: () => _showCreateProjectDialog(context),
-            icon: Icon(Icons.add, size: Dimens.desktopIconSize),
-            label: const Text('New project'),
-            style: ElevatedButton.styleFrom(
-              minimumSize: Size(120, Dimens.desktopButtonHeight),
-            ),
-          ),
-          const SizedBox(width: Dimens.spacing),
-          IconButton(
-            icon: Icon(Icons.settings, size: Dimens.desktopIconSize),
-            onPressed: () => context.router.push(SettingsRoute()),
-            tooltip: 'Settings',
-            style: IconButton.styleFrom(
-              minimumSize: Size(Dimens.desktopButtonHeight, Dimens.desktopButtonHeight),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDesktopBody(BuildContext context, ProjectListState state) {
-    return Container(
-      padding: const EdgeInsets.all(Dimens.desktopMainPadding),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ProjectFilterTabs(
-            currentFilter: state.filter,
-            onFilterChanged: context.read<ProjectListNotifier>().setFilter,
-            projectCounts: {
-              ProjectListFilter.all: state.projects.length,
-              ProjectListFilter.recent: state.recentProjects.length,
-              ProjectListFilter.favorites: state.favoriteProjects.length,
-            },
-          ),
-          const SizedBox(height: Dimens.desktopSpacing),
-          Expanded(
-            child: _buildDesktopContent(context, state),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDesktopContent(BuildContext context, ProjectListState state) {
-    if (state.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
-    }
-
-    if (state.showErrorState) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: Dimens.iconSizeXL,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            const SizedBox(height: Dimens.spacing),
-            Text(
-              'Error loading projects',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: Dimens.halfSpacing),
-            Text(
-              state.error!,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: Dimens.doubleSpacing),
-            ElevatedButton(
-              onPressed: () {
-                context.read<ProjectListNotifier>().clearError();
-                context.read<ProjectListNotifier>().loadProjects();
-              },
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (state.showEmptyState) {
-      return EmptyProjectsState(
-        filter: state.filter,
-        searchQuery: state.searchQuery,
-      );
-    }
-
-    return _buildDesktopProjectGrid(context, state);
-  }
-
-  Widget _buildDesktopProjectGrid(BuildContext context, ProjectListState state) {
-    final projects = state.filteredProjects;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final crossAxisCount = _calculateDesktopCrossAxisCount(constraints.maxWidth);
-
-        return GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            childAspectRatio:
-                Dimens.desktopProjectCardWidth / Dimens.desktopProjectCardHeight,
-            crossAxisSpacing: Dimens.desktopCardSpacing,
-            mainAxisSpacing: Dimens.desktopCardSpacing,
-          ),
-          itemCount: projects.length,
-          itemBuilder: (context, index) {
-            final project = projects[index];
-            return ProjectCard(
-              project: project,
-              onTap: () => _openProject(context, project),
-              onFavoriteToggle: () =>
-                  context.read<ProjectListNotifier>().toggleFavorite(project),
-              onDelete: () => _showDeleteProjectDialog(context, project),
-              onRename: (newName) => context
-                  .read<ProjectListNotifier>()
-                  .renameProject(project, newName),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  int _calculateDesktopCrossAxisCount(double width) {
-    final cardWidth = Dimens.desktopProjectCardWidth + Dimens.desktopCardSpacing;
-    final availableWidth = width - (Dimens.desktopMainPadding * 2);
-    final maxColumns = (availableWidth / cardWidth).floor();
-    
-    // Ensure minimum 2 columns and maximum 5 columns for desktop
-    return maxColumns.clamp(2, 5);
-  }
-
   void _openProject(BuildContext context, Project project) {
-    // Update last opened time
     context.read<ProjectListNotifier>().updateLastOpened(project);
-
-    // Navigate to project editor
     context.router.push(ProjectEditorRoute(project: project));
   }
 
@@ -257,8 +54,8 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
       if (result != null && context.mounted) {
         if (result is CreateProjectResult) {
           await context.read<ProjectListNotifier>().createProject(
-            name: result.name,
-          );
+                name: result.name,
+              );
         }
       }
     });
@@ -301,5 +98,295 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
         context.read<ProjectListNotifier>().deleteProject(project);
       }
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Shortcuts(
+      shortcuts: KeyboardShortcutsService.instance.projectsShortcuts,
+      child: Actions(
+        actions: KeyboardActions.projectsActions,
+        child: Scaffold(
+          body: ValueListenableBuilder<ProjectListState>(
+            valueListenable: context.read<ProjectListNotifier>(),
+            builder: (context, state, child) {
+              return Column(
+                children: [
+                  DesktopHeader(
+                    state: state,
+                    onCreateProject: () => _showCreateProjectDialog(context),
+                  ),
+                  Expanded(
+                    child: DesktopBody(
+                      state: state,
+                      onOpenProject: (project) =>
+                          _openProject(context, project),
+                      onDeleteProject: (project) =>
+                          _showDeleteProjectDialog(context, project),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class DesktopHeader extends StatelessWidget {
+  final ProjectListState state;
+  final VoidCallback onCreateProject;
+
+  const DesktopHeader({
+    super.key,
+    required this.state,
+    required this.onCreateProject,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: Dimens.desktopHeaderHeight,
+      padding: const EdgeInsets.symmetric(
+        horizontal: Dimens.desktopMainPadding,
+        vertical: Dimens.spacing,
+      ),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Text(
+            'MarkFlow',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          const Spacer(),
+          SizedBox(
+            width: Dimens.desktopSearchBarWidth,
+            child: ProjectSearchBar(
+              searchQuery: state.searchQuery,
+              onSearchChanged:
+                  context.read<ProjectListNotifier>().setSearchQuery,
+            ),
+          ),
+          const SizedBox(width: Dimens.desktopSpacing),
+          ElevatedButton.icon(
+            onPressed: onCreateProject,
+            icon: Icon(Icons.add, size: Dimens.desktopIconSize),
+            label: const Text('New project'),
+            style: ElevatedButton.styleFrom(
+              minimumSize: Size(120, Dimens.desktopButtonHeight),
+            ),
+          ),
+          const SizedBox(width: Dimens.spacing),
+          IconButton(
+            icon: Icon(Icons.settings, size: Dimens.desktopIconSize),
+            onPressed: () => context.router.push(SettingsRoute()),
+            tooltip: 'Settings',
+            style: IconButton.styleFrom(
+              minimumSize:
+                  Size(Dimens.desktopButtonHeight, Dimens.desktopButtonHeight),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class DesktopBody extends StatelessWidget {
+  final ProjectListState state;
+  final Function(Project) onOpenProject;
+  final Function(Project) onDeleteProject;
+
+  const DesktopBody({
+    super.key,
+    required this.state,
+    required this.onOpenProject,
+    required this.onDeleteProject,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(Dimens.desktopMainPadding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ProjectFilterTabs(
+            currentFilter: state.filter,
+            onFilterChanged: context.read<ProjectListNotifier>().setFilter,
+            projectCounts: {
+              ProjectListFilter.all: state.projects.length,
+              ProjectListFilter.recent: state.recentProjects.length,
+              ProjectListFilter.favorites: state.favoriteProjects.length,
+            },
+          ),
+          const SizedBox(height: Dimens.desktopSpacing),
+          Expanded(
+            child: DesktopContent(
+              state: state,
+              onOpenProject: onOpenProject,
+              onDeleteProject: onDeleteProject,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class DesktopContent extends StatelessWidget {
+  final ProjectListState state;
+  final Function(Project) onOpenProject;
+  final Function(Project) onDeleteProject;
+
+  const DesktopContent({
+    super.key,
+    required this.state,
+    required this.onOpenProject,
+    required this.onDeleteProject,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (state.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (state.showErrorState) {
+      return ErrorStateWidget(
+        error: state.error!,
+        onRetry: () {
+          context.read<ProjectListNotifier>().clearError();
+          context.read<ProjectListNotifier>().loadProjects();
+        },
+      );
+    }
+
+    if (state.showEmptyState) {
+      return Center(
+        child: EmptyProjectsState(
+          filter: state.filter,
+          searchQuery: state.searchQuery,
+        ),
+      );
+    }
+
+    return ProjectGrid(
+      projects: state.filteredProjects,
+      onOpenProject: onOpenProject,
+      onDeleteProject: onDeleteProject,
+    );
+  }
+}
+
+class ErrorStateWidget extends StatelessWidget {
+  final String error;
+  final VoidCallback onRetry;
+
+  const ErrorStateWidget({
+    super.key,
+    required this.error,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: Dimens.iconSizeXL,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          const SizedBox(height: Dimens.spacing),
+          Text(
+            'Error loading projects',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: Dimens.halfSpacing),
+          Text(
+            error,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.error,
+                ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: Dimens.doubleSpacing),
+          ElevatedButton(
+            onPressed: onRetry,
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ProjectGrid extends StatelessWidget {
+  final List<Project> projects;
+  final Function(Project) onOpenProject;
+  final Function(Project) onDeleteProject;
+
+  const ProjectGrid({
+    super.key,
+    required this.projects,
+    required this.onOpenProject,
+    required this.onDeleteProject,
+  });
+
+  int _calculateDesktopCrossAxisCount(double width) {
+    final cardWidth =
+        Dimens.desktopProjectCardWidth + Dimens.desktopCardSpacing;
+    final availableWidth = width - (Dimens.desktopMainPadding * 2);
+    final maxColumns = (availableWidth / cardWidth).floor();
+    return maxColumns.clamp(2, 5);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount =
+            _calculateDesktopCrossAxisCount(constraints.maxWidth);
+
+        return GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: Dimens.desktopProjectCardWidth /
+                Dimens.desktopProjectCardHeight,
+            crossAxisSpacing: Dimens.desktopCardSpacing,
+            mainAxisSpacing: Dimens.desktopCardSpacing,
+          ),
+          itemCount: projects.length,
+          itemBuilder: (context, index) {
+            final project = projects[index];
+            return ProjectCard(
+              project: project,
+              onTap: () => onOpenProject(project),
+              onFavoriteToggle: () =>
+                  context.read<ProjectListNotifier>().toggleFavorite(project),
+              onDelete: () => onDeleteProject(project),
+              onRename: (newName) => context
+                  .read<ProjectListNotifier>()
+                  .renameProject(project, newName),
+            );
+          },
+        );
+      },
+    );
   }
 }
