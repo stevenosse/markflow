@@ -24,29 +24,29 @@ class ProjectEditorScreen extends StatefulWidget {
   });
 
   @override
-  State<ProjectEditorScreen> createState() => _ProjectEditorScreenState();
+  State<ProjectEditorScreen> createState() => ProjectEditorScreenState();
 }
 
-class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
-  late final ProjectEditorNotifier _notifier;
+class ProjectEditorScreenState extends State<ProjectEditorScreen> {
+  late final ProjectEditorNotifier notifier;
 
   @override
   void initState() {
     super.initState();
-    _notifier = ProjectEditorNotifier();
-    _notifier.loadProject(widget.project);
+    notifier = ProjectEditorNotifier();
+    notifier.loadProject(widget.project);
   }
 
   @override
   void dispose() {
-    _notifier.dispose();
+    notifier.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ProjectEditorState>(
-      valueListenable: _notifier,
+      valueListenable: notifier,
       builder: (context, state, child) {
         if (state.isLoading) {
           return Scaffold(
@@ -115,7 +115,7 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
                         ),
                         SizedBox(height: Dimens.desktopSpacingL),
                         ElevatedButton(
-                          onPressed: () => _notifier.loadProject(widget.project),
+                          onPressed: () => notifier.loadProject(widget.project),
                           child: const Text('Retry'),
                         ),
                       ],
@@ -140,9 +140,9 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
                     hasUnsavedChanges: state.hasUnsavedChanges,
                     viewMode: state.currentView,
                     isPreviewVisible: state.isPreviewMode,
-                    onSave: _notifier.saveCurrentFile,
-                    onViewModeChanged: _notifier.setView,
-                    onTogglePreview: _notifier.togglePreviewMode,
+                    onSave: notifier.saveCurrentFile,
+              onViewModeChanged: notifier.setView,
+              onTogglePreview: notifier.togglePreviewMode,
                     onNewFile: () => _showCreateFileDialog(context),
                     onNewFolder: () => _showCreateFolderDialog(context),
                   ),
@@ -181,11 +181,11 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
           child: FileTreePanel(
             files: state.files,
             selectedFile: state.currentFile,
-            onFileSelected: _notifier.openFile,
-            onFileDeleted: _notifier.deleteFile,
-            onFileRenamed: _notifier.renameFile,
-            onFolderCreated: _notifier.createFolder,
-            onFileCreated: _notifier.createFile,
+            onFileSelected: notifier.openFile,
+                  onFileDeleted: notifier.deleteFile,
+                  onFileRenamed: notifier.renameFile,
+                  onFolderCreated: notifier.createFolder,
+                  onFileCreated: notifier.createFile,
           ),
         ),
         const VerticalDivider(width: 1),
@@ -195,9 +195,9 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
                   openFiles: state.openFiles,
                   activeFile: state.currentFile!,
                   content: state.currentContent,
-                  onContentChanged: _notifier.updateContent,
-                  onFileSelected: _notifier.switchToFile,
-                  onFileClose: _notifier.closeFile,
+                  onContentChanged: notifier.updateContent,
+                  onFileSelected: notifier.switchToFile,
+                  onFileClose: notifier.closeFile,
                   isLoading: state.isSaving,
                 )
               : _buildDesktopNoFileSelected(context),
@@ -214,11 +214,11 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
           child: FileTreePanel(
             files: state.files,
             selectedFile: state.currentFile,
-            onFileSelected: _notifier.openFile,
-            onFileDeleted: _notifier.deleteFile,
-            onFileRenamed: _notifier.renameFile,
-            onFolderCreated: _notifier.createFolder,
-            onFileCreated: _notifier.createFile,
+            onFileSelected: notifier.openFile,
+                    onFileDeleted: notifier.deleteFile,
+                    onFileRenamed: notifier.renameFile,
+                    onFolderCreated: notifier.createFolder,
+                    onFileCreated: notifier.createFile,
           ),
         ),
         const VerticalDivider(width: 1),
@@ -242,11 +242,11 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
           child: FileTreePanel(
             files: state.files,
             selectedFile: state.currentFile,
-            onFileSelected: _notifier.openFile,
-            onFileDeleted: _notifier.deleteFile,
-            onFileRenamed: _notifier.renameFile,
-            onFolderCreated: _notifier.createFolder,
-            onFileCreated: _notifier.createFile,
+            onFileSelected: notifier.openFile,
+                onFileDeleted: notifier.deleteFile,
+                onFileRenamed: notifier.renameFile,
+                onFolderCreated: notifier.createFolder,
+                onFileCreated: notifier.createFile,
           ),
         ),
         const VerticalDivider(width: 1),
@@ -256,9 +256,9 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
               openFiles: state.openFiles,
               activeFile: state.currentFile!,
               content: state.currentContent,
-              onContentChanged: _notifier.updateContent,
-              onFileSelected: _notifier.switchToFile,
-              onFileClose: _notifier.closeFile,
+              onContentChanged: notifier.updateContent,
+                onFileSelected: notifier.switchToFile,
+                onFileClose: notifier.closeFile,
               isLoading: state.isSaving,
             ),
           ),
@@ -286,11 +286,11 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
           child: FileTreePanel(
             files: state.files,
             selectedFile: state.currentFile,
-            onFileSelected: _notifier.openFile,
-            onFileDeleted: _notifier.deleteFile,
-            onFileRenamed: _notifier.renameFile,
-            onFolderCreated: _notifier.createFolder,
-            onFileCreated: _notifier.createFile,
+            onFileSelected: notifier.openFile,
+                onFileDeleted: notifier.deleteFile,
+                onFileRenamed: notifier.renameFile,
+                onFolderCreated: notifier.createFolder,
+                onFileCreated: notifier.createFile,
           ),
         ),
         const VerticalDivider(width: 1),
@@ -299,12 +299,12 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
             gitStatus: state.gitStatus,
             recentCommits: state.recentCommits,
             currentBranch: state.currentBranch,
-            onStageFile: _notifier.stageFile,
-            onUnstageFile: _notifier.unstageFile,
-            onCommit: _notifier.commitChanges,
-            onPush: _notifier.pushChanges,
-            onPull: _notifier.pullChanges,
-            onRefresh: _notifier.refreshGitStatus,
+            onStageFile: notifier.stageFile,
+                onUnstageFile: notifier.unstageFile,
+                onCommit: notifier.commitChanges,
+                onPush: notifier.pushChanges,
+                onPull: notifier.pullChanges,
+                onRefresh: notifier.refreshGitStatus,
           ),
         ),
       ],
@@ -350,22 +350,22 @@ class _ProjectEditorScreenState extends State<ProjectEditorScreen> {
   void _showCreateFileDialog(BuildContext context) async {
     final fileName = await CreateFileDialog.show(
       context: context,
-      initialPath: _notifier.value.project?.path,
+      initialPath: notifier.value.project?.path,
     );
     
     if (fileName != null && fileName.isNotEmpty) {
-      _notifier.createFileWithOptions(fileName: fileName);
+      notifier.createFileWithOptions(fileName: fileName);
     }
   }
 
   void _showCreateFolderDialog(BuildContext context) async {
     final folderName = await CreateFolderDialog.show(
       context: context,
-      initialPath: _notifier.value.project?.path,
+      initialPath: notifier.value.project?.path,
     );
     
     if (folderName != null && folderName.isNotEmpty) {
-      _notifier.createFolder(folderName);
+      notifier.createFolder(folderName);
     }
   }
 }
