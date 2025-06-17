@@ -423,7 +423,7 @@ class GitService {
         author: parts[3],
         authorEmail: parts[4],
         timestamp: timestamp,
-        changedFiles: [], // TODO: Get changed files if needed
+        changedFiles: []
       ));
     }
     

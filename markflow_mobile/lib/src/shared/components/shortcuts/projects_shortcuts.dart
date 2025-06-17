@@ -94,8 +94,8 @@ class ProjectsShortcuts extends StatelessWidget {
         initialAction: ProjectActionType.create,
       );
     } catch (e) {
-      debugPrint('Error creating new project: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _openProject(BuildContext context) async {
@@ -105,8 +105,8 @@ class ProjectsShortcuts extends StatelessWidget {
         initialAction: ProjectActionType.import,
       );
     } catch (e) {
-      debugPrint('Error opening project: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _importProject(BuildContext context) async {
@@ -116,8 +116,8 @@ class ProjectsShortcuts extends StatelessWidget {
         initialAction: ProjectActionType.import,
       );
     } catch (e) {
-      debugPrint('Error importing project: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _searchProjects() {
@@ -132,8 +132,8 @@ class ProjectsShortcuts extends StatelessWidget {
         notifier.setSearchQuery('');
       }
     } catch (e) {
-      debugPrint('Error searching projects: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _openSelectedProject() {
@@ -149,8 +149,8 @@ class ProjectsShortcuts extends StatelessWidget {
         }
       }
     } catch (e) {
-      debugPrint('Error opening selected project: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _deleteSelectedProject(BuildContext context) async {
@@ -173,8 +173,8 @@ class ProjectsShortcuts extends StatelessWidget {
         }
       }
     } catch (e) {
-      debugPrint('Error deleting selected project: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _navigateUp() {
@@ -192,8 +192,8 @@ class ProjectsShortcuts extends StatelessWidget {
         );
       }
     } catch (e) {
-      debugPrint('Error navigating up: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _navigateDown() {
@@ -209,8 +209,8 @@ class ProjectsShortcuts extends StatelessWidget {
         );
       }
     } catch (e) {
-      debugPrint('Error navigating down: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _toggleViewMode() {
@@ -224,16 +224,16 @@ class ProjectsShortcuts extends StatelessWidget {
       };
       notifier.setFilter(nextFilter);
     } catch (e) {
-      debugPrint('Error toggling view mode: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _refreshProjects() {
     try {
       notifier.loadProjects();
     } catch (e) {
-      debugPrint('Error refreshing projects: $e');
-    }
+        // Error handled silently
+      }
   }
 }
 

@@ -30,8 +30,8 @@ class OnboardingNotifier extends ValueNotifier<OnboardingState> {
         projectPath: basePath,
       );
     } catch (e) {
-      debugPrint('Error loading existing config: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void setCurrentStep(int step) {

@@ -158,16 +158,16 @@ class EditorShortcuts extends StatelessWidget {
     try {
       notifier.saveCurrentFile();
     } catch (e) {
-      debugPrint('Error saving file: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _saveAllFiles() {
     try {
       notifier.saveCurrentFile();
     } catch (e) {
-      debugPrint('Error saving all files: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _createFile(BuildContext context) async {
@@ -181,8 +181,8 @@ class EditorShortcuts extends StatelessWidget {
         notifier.createFileWithOptions(fileName: fileName);
       }
     } catch (e) {
-      debugPrint('Error creating file: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _closeTab() {
@@ -191,8 +191,8 @@ class EditorShortcuts extends StatelessWidget {
         notifier.closeFile(state.currentFile!);
       }
     } catch (e) {
-      debugPrint('Error closing tab: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _deleteFile(BuildContext context) async {
@@ -211,8 +211,8 @@ class EditorShortcuts extends StatelessWidget {
         notifier.deleteFile(state.currentFile!);
       }
     } catch (e) {
-      debugPrint('Error deleting file: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _renameFile(BuildContext context) async {
@@ -252,8 +252,8 @@ class EditorShortcuts extends StatelessWidget {
         notifier.renameFile(state.currentFile!, newName);
       }
     } catch (e) {
-      debugPrint('Error renaming file: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _findInFile(BuildContext context) async {
@@ -267,8 +267,8 @@ class EditorShortcuts extends StatelessWidget {
         notifier.setSearchQuery(query);
       }
     } catch (e) {
-      debugPrint('Error in find dialog: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _findInProject(BuildContext context) async {
@@ -296,8 +296,8 @@ class EditorShortcuts extends StatelessWidget {
         await notifier.replaceInCurrentFile(result.findText, result.replaceText);
       }
     } catch (e) {
-      debugPrint('Error in replace dialog: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _nextTab() {
@@ -308,8 +308,8 @@ class EditorShortcuts extends StatelessWidget {
       final nextIndex = (currentIndex + 1) % state.openFiles.length;
       notifier.switchToFile(state.openFiles[nextIndex]);
     } catch (e) {
-      debugPrint('Error switching to next tab: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _previousTab() {
@@ -321,8 +321,8 @@ class EditorShortcuts extends StatelessWidget {
           (currentIndex - 1 + state.openFiles.length) % state.openFiles.length;
       notifier.switchToFile(state.openFiles[previousIndex]);
     } catch (e) {
-      debugPrint('Error switching to previous tab: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _goToLine(BuildContext context) async {
@@ -336,8 +336,8 @@ class EditorShortcuts extends StatelessWidget {
         notifier.goToLine(lineNumber);
       }
     } catch (e) {
-      debugPrint('Error in go to line dialog: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _toggleSidebar() {
@@ -347,16 +347,16 @@ class EditorShortcuts extends StatelessWidget {
           : ProjectEditorView.fileTree;
       notifier.setView(newView);
     } catch (e) {
-      debugPrint('Error toggling sidebar: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _togglePreview() {
     try {
       notifier.togglePreviewMode();
     } catch (e) {
-      debugPrint('Error toggling preview: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _toggleGitPanel() {
@@ -366,48 +366,48 @@ class EditorShortcuts extends StatelessWidget {
           : ProjectEditorView.git;
       notifier.setView(newView);
     } catch (e) {
-      debugPrint('Error toggling git panel: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _duplicateLine() {
     try {
       notifier.duplicateCurrentLine();
     } catch (e) {
-      debugPrint('Error duplicating line: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _toggleComment() {
     try {
       notifier.toggleCommentOnCurrentLine();
     } catch (e) {
-      debugPrint('Error toggling comment: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _zoomIn() {
     try {
       notifier.increaseFontSize();
     } catch (e) {
-      debugPrint('Error zooming in: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _zoomOut() {
     try {
       notifier.decreaseFontSize();
     } catch (e) {
-      debugPrint('Error zooming out: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _resetZoom() {
     try {
       notifier.resetFontSize();
     } catch (e) {
-      debugPrint('Error resetting zoom: $e');
-    }
+        // Error handled silently
+      }
   }
 }
 

@@ -1,5 +1,5 @@
 name: markflow
-description: A boilerplate for Flutter Projects using BLoC Architecture
+description: A powerful, cross-platform markdown editor with Git integration built with Flutter
 
 publish_to: 'none'
 

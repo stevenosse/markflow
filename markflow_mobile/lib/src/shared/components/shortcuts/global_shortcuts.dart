@@ -69,16 +69,16 @@ class GlobalShortcuts extends StatelessWidget {
         initialAction: ProjectActionType.create,
       );
     } catch (e) {
-      debugPrint('Error creating project: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _openSettings(BuildContext context) {
     try {
       context.router.push(SettingsRoute());
     } catch (e) {
-      debugPrint('Error opening settings: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _goBack(BuildContext context) {
@@ -87,18 +87,18 @@ class GlobalShortcuts extends StatelessWidget {
         context.router.pop();
       }
     } catch (e) {
-      debugPrint('Error going back: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _quitApp() {
     try {
       // On mobile, this would minimize the app
       // On desktop, this would close the app
-      debugPrint('Quit app requested');
-    } catch (e) {
-      debugPrint('Error quitting app: $e');
-    }
+      // Quit app requested
+      } catch (e) {
+        // Error handled silently
+      }
   }
 
   void _quickOpen(BuildContext context) {
@@ -120,7 +120,7 @@ class GlobalShortcuts extends StatelessWidget {
                 ),
                 onSubmitted: (value) {
                   Navigator.of(context).pop();
-                  debugPrint('Quick open file: $value');
+                  // Quick open file: $value
                 },
               ),
               const SizedBox(height: 16),
@@ -139,8 +139,8 @@ class GlobalShortcuts extends StatelessWidget {
         ),
       );
     } catch (e) {
-      debugPrint('Error in quick open: $e');
-    }
+        // Error handled silently
+      }
   }
 
   void _commandPalette(BuildContext context) {
@@ -183,7 +183,7 @@ class GlobalShortcuts extends StatelessWidget {
                       title: Text(commands[index]),
                       onTap: () {
                         Navigator.of(context).pop();
-                        debugPrint('Execute command: ${commands[index]}');
+                        // Execute command: ${commands[index]}
                       },
                     ),
                   ),
@@ -200,8 +200,8 @@ class GlobalShortcuts extends StatelessWidget {
         ),
       );
     } catch (e) {
-      debugPrint('Error in command palette: $e');
-    }
+        // Error handled silently
+      }
   }
 }
 
