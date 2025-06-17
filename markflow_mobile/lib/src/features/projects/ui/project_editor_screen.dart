@@ -9,6 +9,7 @@ import 'package:markflow/src/features/projects/ui/widgets/markdown_editor.dart';
 import 'package:markflow/src/features/projects/ui/widgets/markdown_preview.dart';
 import 'package:markflow/src/features/projects/ui/widgets/git_panel.dart';
 import 'package:markflow/src/features/projects/ui/widgets/editor_app_bar.dart';
+import 'package:markflow/src/features/projects/ui/widgets/project_settings_dialog.dart';
 import 'package:markflow/src/shared/components/dialogs/create_file_dialog.dart';
 import 'package:markflow/src/shared/components/dialogs/create_folder_dialog.dart';
 import 'package:markflow/src/shared/components/shortcuts/editor_shortcuts.dart';
@@ -36,6 +37,18 @@ class ProjectEditorScreenState extends State<ProjectEditorScreen> {
     notifier.loadProject(widget.project);
   }
 
+  void _showProjectSettingsDialog(BuildContext context, Project project) {
+    ProjectSettingsDialog.show(
+      context,
+      project,
+    ).then((result) {
+      if (result?.hasChanges == true && context.mounted) {
+        // Refresh the project to reflect any changes
+        notifier.loadProject(project);
+      }
+    });
+  }
+  
   @override
   void dispose() {
     notifier.dispose();
@@ -44,92 +57,96 @@ class ProjectEditorScreenState extends State<ProjectEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<ProjectEditorState>(
-      valueListenable: notifier,
-      builder: (context, state, child) {
-        if (state.isLoading) {
-          return Scaffold(
-            body: Column(
-              children: [
-                EditorAppBar(
-                  project: widget.project,
-                  selectedFile: null,
-                  hasUnsavedChanges: false,
-                  viewMode: ProjectEditorView.editor,
-                  isPreviewVisible: false,
-                  onSave: () {},
-                  onViewModeChanged: (_) {},
-                  onTogglePreview: () {},
-                  onNewFile: () {},
-                  onNewFolder: () {},
-                ),
-                const Expanded(
-                  child: Center(
-                    child: CircularProgressIndicator(),
+    return EditorShortcuts(
+      notifier: notifier,
+      state: notifier.value,
+      child: ValueListenableBuilder<ProjectEditorState>(
+        valueListenable: notifier,
+        builder: (context, state, child) {
+          if (state.isLoading) {
+            return Scaffold(
+              body: Column(
+                children: [
+                  EditorAppBar(
+                    project: widget.project,
+                    selectedFile: null,
+                    hasUnsavedChanges: false,
+                    viewMode: ProjectEditorView.editor,
+                    isPreviewVisible: false,
+                    onSave: () {},
+                    onViewModeChanged: (_) {},
+                    onTogglePreview: () {},
+                    onNewFile: () {},
+                    onNewFolder: () {},
                   ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        if (state.error != null) {
-          return Scaffold(
-            body: Column(
-              children: [
-                EditorAppBar(
-                  project: widget.project,
-                  selectedFile: null,
-                  hasUnsavedChanges: false,
-                  viewMode: ProjectEditorView.editor,
-                  isPreviewVisible: false,
-                  onSave: () {},
-                  onViewModeChanged: (_) {},
-                  onTogglePreview: () {},
-                  onNewFile: () {},
-                  onNewFolder: () {},
-                ),
-                Expanded(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          size: 64,
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                        SizedBox(height: Dimens.desktopSpacing),
-                        Text(
-                          'Error loading project',
-                          style: Theme.of(context).textTheme.headlineSmall,
-                        ),
-                        SizedBox(height: Dimens.desktopSpacing / 2),
-                        Text(
-                          state.error!,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.error,
-                              ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: Dimens.desktopSpacingL),
-                        ElevatedButton(
-                          onPressed: () => notifier.loadProject(widget.project),
-                          child: const Text('Retry'),
-                        ),
-                      ],
+                  const Expanded(
+                    child: Center(
+                      child: CircularProgressIndicator(),
                     ),
                   ),
-                ),
-              ],
-            ),
-          );
-        }
+                ],
+              ),
+            );
+          }
 
-        return EditorShortcuts(
-          notifier: notifier,
-          state: state,
-          child: Scaffold(
+          if (state.error != null) {
+            return Scaffold(
+              body: Column(
+                children: [
+                  EditorAppBar(
+                    project: widget.project,
+                    selectedFile: null,
+                    hasUnsavedChanges: false,
+                    viewMode: ProjectEditorView.editor,
+                    isPreviewVisible: false,
+                    onSave: () {},
+                    onViewModeChanged: (_) {},
+                    onTogglePreview: () {},
+                    onNewFile: () {},
+                    onNewFolder: () {},
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                          SizedBox(height: Dimens.desktopSpacing),
+                          Text(
+                            'Error loading project',
+                            style: Theme.of(context).textTheme.headlineSmall,
+                          ),
+                          SizedBox(height: Dimens.desktopSpacing / 2),
+                          Text(
+                            state.error!,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: Dimens.desktopSpacingL),
+                          ElevatedButton(
+                            onPressed: () =>
+                                notifier.loadProject(widget.project),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return Scaffold(
             body: Column(
               children: [
                 EditorAppBar(
@@ -143,15 +160,16 @@ class ProjectEditorScreenState extends State<ProjectEditorScreen> {
                   onTogglePreview: notifier.togglePreviewMode,
                   onNewFile: () => _showCreateFileDialog(context),
                   onNewFolder: () => _showCreateFolderDialog(context),
+                  onProjectSettings: () => _showProjectSettingsDialog(context, state.project!),
                 ),
                 Expanded(
                   child: _buildDesktopBody(context, state),
                 ),
               ],
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -170,7 +188,8 @@ class ProjectEditorScreenState extends State<ProjectEditorScreen> {
     }
   }
 
-  Widget _buildDesktopEditorView(BuildContext context, ProjectEditorState state) {
+  Widget _buildDesktopEditorView(
+      BuildContext context, ProjectEditorState state) {
     return Row(
       children: [
         SizedBox(
@@ -179,10 +198,10 @@ class ProjectEditorScreenState extends State<ProjectEditorScreen> {
             files: state.files,
             selectedFile: state.currentFile,
             onFileSelected: notifier.openFile,
-                  onFileDeleted: notifier.deleteFile,
-                  onFileRenamed: notifier.renameFile,
-                  onFolderCreated: notifier.createFolder,
-                  onFileCreated: notifier.createFile,
+            onFileDeleted: notifier.deleteFile,
+            onFileRenamed: notifier.renameFile,
+            onFolderCreated: notifier.createFolder,
+            onFileCreated: notifier.createFile,
           ),
         ),
         const VerticalDivider(width: 1),
@@ -204,7 +223,8 @@ class ProjectEditorScreenState extends State<ProjectEditorScreen> {
     );
   }
 
-  Widget _buildDesktopPreviewView(BuildContext context, ProjectEditorState state) {
+  Widget _buildDesktopPreviewView(
+      BuildContext context, ProjectEditorState state) {
     return Row(
       children: [
         SizedBox(
@@ -213,10 +233,10 @@ class ProjectEditorScreenState extends State<ProjectEditorScreen> {
             files: state.files,
             selectedFile: state.currentFile,
             onFileSelected: notifier.openFile,
-                    onFileDeleted: notifier.deleteFile,
-                    onFileRenamed: notifier.renameFile,
-                    onFolderCreated: notifier.createFolder,
-                    onFileCreated: notifier.createFile,
+            onFileDeleted: notifier.deleteFile,
+            onFileRenamed: notifier.renameFile,
+            onFolderCreated: notifier.createFolder,
+            onFileCreated: notifier.createFile,
           ),
         ),
         const VerticalDivider(width: 1),
@@ -232,7 +252,8 @@ class ProjectEditorScreenState extends State<ProjectEditorScreen> {
     );
   }
 
-  Widget _buildDesktopSplitView(BuildContext context, ProjectEditorState state) {
+  Widget _buildDesktopSplitView(
+      BuildContext context, ProjectEditorState state) {
     return Row(
       children: [
         SizedBox(
@@ -241,10 +262,10 @@ class ProjectEditorScreenState extends State<ProjectEditorScreen> {
             files: state.files,
             selectedFile: state.currentFile,
             onFileSelected: notifier.openFile,
-                onFileDeleted: notifier.deleteFile,
-                onFileRenamed: notifier.renameFile,
-                onFolderCreated: notifier.createFolder,
-                onFileCreated: notifier.createFile,
+            onFileDeleted: notifier.deleteFile,
+            onFileRenamed: notifier.renameFile,
+            onFolderCreated: notifier.createFolder,
+            onFileCreated: notifier.createFile,
           ),
         ),
         const VerticalDivider(width: 1),
@@ -286,10 +307,10 @@ class ProjectEditorScreenState extends State<ProjectEditorScreen> {
             files: state.files,
             selectedFile: state.currentFile,
             onFileSelected: notifier.openFile,
-                onFileDeleted: notifier.deleteFile,
-                onFileRenamed: notifier.renameFile,
-                onFolderCreated: notifier.createFolder,
-                onFileCreated: notifier.createFile,
+            onFileDeleted: notifier.deleteFile,
+            onFileRenamed: notifier.renameFile,
+            onFolderCreated: notifier.createFolder,
+            onFileCreated: notifier.createFile,
           ),
         ),
         const VerticalDivider(width: 1),
@@ -299,11 +320,11 @@ class ProjectEditorScreenState extends State<ProjectEditorScreen> {
             recentCommits: state.recentCommits,
             currentBranch: state.currentBranch,
             onStageFile: notifier.stageFile,
-                onUnstageFile: notifier.unstageFile,
-                onCommit: notifier.commitChanges,
-                onPush: notifier.pushChanges,
-                onPull: notifier.pullChanges,
-                onRefresh: notifier.refreshGitStatus,
+            onUnstageFile: notifier.unstageFile,
+            onCommit: notifier.commitChanges,
+            onPush: notifier.pushChanges,
+            onPull: notifier.pullChanges,
+            onRefresh: notifier.refreshGitStatus,
           ),
         ),
       ],
@@ -351,7 +372,7 @@ class ProjectEditorScreenState extends State<ProjectEditorScreen> {
       context: context,
       initialPath: notifier.value.project?.path,
     );
-    
+
     if (fileName != null && fileName.isNotEmpty) {
       notifier.createFileWithOptions(fileName: fileName);
     }
@@ -362,7 +383,7 @@ class ProjectEditorScreenState extends State<ProjectEditorScreen> {
       context: context,
       initialPath: notifier.value.project?.path,
     );
-    
+
     if (folderName != null && folderName.isNotEmpty) {
       notifier.createFolder(folderName);
     }

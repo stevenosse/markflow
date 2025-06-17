@@ -11,6 +11,7 @@ class ProjectCard extends StatelessWidget {
   final VoidCallback onFavoriteToggle;
   final VoidCallback onDelete;
   final void Function(String) onRename;
+  final VoidCallback? onSettings;
 
   const ProjectCard({
     super.key,
@@ -19,6 +20,7 @@ class ProjectCard extends StatelessWidget {
     required this.onFavoriteToggle,
     required this.onDelete,
     required this.onRename,
+    this.onSettings,
   });
 
   @override
@@ -42,6 +44,7 @@ class ProjectCard extends StatelessWidget {
                 onFavoriteToggle: onFavoriteToggle,
                 onDelete: onDelete,
                 onRename: onRename,
+                onSettings: onSettings,
               ),
               const SizedBox(height: Dimens.spacing),
               _ProjectTitle(project: project),
@@ -62,12 +65,14 @@ class _ProjectHeader extends StatelessWidget {
   final VoidCallback onFavoriteToggle;
   final VoidCallback onDelete;
   final void Function(String) onRename;
+  final VoidCallback? onSettings;
 
   const _ProjectHeader({
     required this.project,
     required this.onFavoriteToggle,
     required this.onDelete,
     required this.onRename,
+    this.onSettings,
   });
 
   @override
@@ -84,6 +89,7 @@ class _ProjectHeader extends StatelessWidget {
           project: project,
           onDelete: onDelete,
           onRename: onRename,
+          onSettings: onSettings,
         ),
       ],
     );
@@ -159,11 +165,13 @@ class _MenuButton extends StatelessWidget {
   final Project project;
   final VoidCallback onDelete;
   final void Function(String) onRename;
+  final VoidCallback? onSettings;
 
   const _MenuButton({
     required this.project,
     required this.onDelete,
     required this.onRename,
+    this.onSettings,
   });
 
   @override
@@ -190,14 +198,27 @@ class _MenuButton extends StatelessWidget {
             ),
           ),
         ),
-        // Delete button with popup menu
+        // Menu button with popup menu
         PopupMenuButton<String>(
           onSelected: (value) {
-            if (value == 'delete') {
+            if (value == 'settings') {
+              onSettings?.call();
+            } else if (value == 'delete') {
               onDelete();
             }
           },
           itemBuilder: (context) => [
+            if (onSettings != null)
+              PopupMenuItem(
+                value: 'settings',
+                child: Row(
+                  children: [
+                    Icon(Icons.settings, size: Dimens.desktopIconSize),
+                    const SizedBox(width: Dimens.halfSpacing),
+                    const Text('Settings'),
+                  ],
+                ),
+              ),
             PopupMenuItem(
               value: 'delete',
               child: Row(

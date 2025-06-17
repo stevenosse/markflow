@@ -278,6 +278,7 @@ class _MarkdownEditorState extends State<MarkdownEditor> with TickerProviderStat
           ),
         decoration: InputDecoration(
           hintText: 'Start writing your markdown...',
+          hoverColor: Colors.transparent,
           hintStyle: TextStyle(
             color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
           ),

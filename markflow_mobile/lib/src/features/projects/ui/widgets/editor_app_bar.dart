@@ -3,6 +3,7 @@ import 'package:markflow/src/core/theme/dimens.dart';
 import 'package:markflow/src/datasource/models/project.dart';
 import 'package:markflow/src/datasource/models/markdown_file.dart';
 import 'package:markflow/src/features/projects/logic/project_editor/project_editor_state.dart';
+import 'package:markflow/src/features/projects/ui/widgets/project_settings_dialog.dart';
 
 class EditorAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Project project;
@@ -15,6 +16,7 @@ class EditorAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onTogglePreview;
   final VoidCallback onNewFile;
   final VoidCallback onNewFolder;
+  final VoidCallback? onProjectSettings;
 
   const EditorAppBar({
     super.key,
@@ -28,6 +30,7 @@ class EditorAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.onTogglePreview,
     required this.onNewFile,
     required this.onNewFolder,
+    this.onProjectSettings,
   });
 
   @override
@@ -323,18 +326,15 @@ class EditorAppBar extends StatelessWidget implements PreferredSizeWidget {
           tooltip: 'New Folder',
           onPressed: onNewFolder,
         ),
-
-        // Preview toggle (only for editor/preview modes)
-        if (viewMode == ProjectEditorView.editor ||
-            viewMode == ProjectEditorView.preview) ...[
+        
+        // Project settings button
+        if (onProjectSettings != null) ...[
           const SizedBox(width: Dimens.halfSpacing),
           _buildActionButton(
             context,
-            icon: isPreviewVisible
-                ? Icons.visibility_off_outlined
-                : Icons.visibility_outlined,
-            tooltip: isPreviewVisible ? 'Hide Preview' : 'Show Preview',
-            onPressed: onTogglePreview,
+            icon: Icons.settings_outlined,
+            tooltip: 'Project Settings',
+            onPressed: () => _showProjectSettings(context),
           ),
         ],
       ],
@@ -389,5 +389,15 @@ class EditorAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
     );
+  }
+
+  void _showProjectSettings(BuildContext context) {
+    if (onProjectSettings != null) {
+      ProjectSettingsDialog.show(context, project).then((result) {
+        if (result?.hasChanges == true) {
+          onProjectSettings!();
+        }
+      });
+    }
   }
 }

@@ -3,6 +3,7 @@ import 'package:markflow/src/core/services/file_service.dart';
 import 'package:markflow/src/core/services/git_service.dart';
 import 'package:markflow/src/core/services/path_config_service.dart';
 import 'package:markflow/src/core/services/settings_service.dart';
+import 'package:markflow/src/core/services/ssh_key_service.dart';
 import 'package:markflow/src/core/routing/app_router.dart';
 import 'package:markflow/src/datasource/http/dio_config.dart';
 import 'package:markflow/src/datasource/http/example_api.dart';
@@ -25,4 +26,5 @@ final GetIt locator = GetIt.instance
   ..registerLazySingleton<GitRepository>(() => GitRepository())
   ..registerLazySingleton(() => FileService())
   ..registerLazySingleton(() => GitService())
+  ..registerLazySingleton(() => SshKeyService())
   ..registerLazySingleton(() => SettingsService());

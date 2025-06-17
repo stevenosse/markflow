@@ -11,6 +11,22 @@
 part of 'app_router.dart';
 
 /// generated route for
+/// [MainWrapper]
+class MainRouter extends PageRouteInfo<void> {
+  const MainRouter({List<PageRouteInfo>? children})
+      : super(MainRouter.name, initialChildren: children);
+
+  static const String name = 'MainRouter';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const MainWrapper();
+    },
+  );
+}
+
+/// generated route for
 /// [OnboardingScreen]
 class OnboardingRoute extends PageRouteInfo<void> {
   const OnboardingRoute({List<PageRouteInfo>? children})
@@ -21,7 +37,7 @@ class OnboardingRoute extends PageRouteInfo<void> {
   static PageInfo page = PageInfo(
     name,
     builder: (data) {
-      return const OnboardingScreen();
+      return WrappedRoute(child: const OnboardingScreen());
     },
   );
 }

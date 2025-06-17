@@ -10,6 +10,7 @@ import 'package:markflow/src/features/projects/ui/widgets/project_search_bar.dar
 import 'package:markflow/src/features/projects/ui/widgets/project_filter_tabs.dart';
 import 'package:markflow/src/features/projects/ui/widgets/empty_projects_state.dart';
 import 'package:markflow/src/features/projects/ui/widgets/project_action_dialog.dart';
+import 'package:markflow/src/features/projects/ui/widgets/project_settings_dialog.dart';
 import 'package:markflow/src/shared/components/dialogs/confirmation_dialog.dart';
 import 'package:markflow/src/shared/components/shortcuts/projects_shortcuts.dart';
 import 'package:provider/provider.dart';
@@ -88,6 +89,18 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
     });
   }
 
+  void _showProjectSettingsDialog(BuildContext context, Project project) {
+    ProjectSettingsDialog.show(
+      context,
+      project,
+    ).then((result) {
+      if (result?.hasChanges == true && context.mounted) {
+        // Refresh the project list to reflect any changes
+        context.read<ProjectListNotifier>().loadProjects();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ProjectListState>(
@@ -110,6 +123,8 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                         _openProject(context, project),
                     onDeleteProject: (project) =>
                         _showDeleteProjectDialog(context, project),
+                    onProjectSettings: (project) =>
+                        _showProjectSettingsDialog(context, project),
                   ),
                 ),
               ],
@@ -194,12 +209,14 @@ class DesktopBody extends StatelessWidget {
   final ProjectListState state;
   final Function(Project) onOpenProject;
   final Function(Project) onDeleteProject;
+  final Function(Project) onProjectSettings;
 
   const DesktopBody({
     super.key,
     required this.state,
     required this.onOpenProject,
     required this.onDeleteProject,
+    required this.onProjectSettings,
   });
 
   @override
@@ -224,6 +241,7 @@ class DesktopBody extends StatelessWidget {
               state: state,
               onOpenProject: onOpenProject,
               onDeleteProject: onDeleteProject,
+              onProjectSettings: onProjectSettings,
             ),
           ),
         ],
@@ -236,12 +254,14 @@ class DesktopContent extends StatelessWidget {
   final ProjectListState state;
   final Function(Project) onOpenProject;
   final Function(Project) onDeleteProject;
+  final Function(Project) onProjectSettings;
 
   const DesktopContent({
     super.key,
     required this.state,
     required this.onOpenProject,
     required this.onDeleteProject,
+    required this.onProjectSettings,
   });
 
   @override
@@ -273,6 +293,7 @@ class DesktopContent extends StatelessWidget {
       projects: state.filteredProjects,
       onOpenProject: onOpenProject,
       onDeleteProject: onDeleteProject,
+      onProjectSettings: onProjectSettings,
     );
   }
 }
@@ -326,12 +347,14 @@ class ProjectGrid extends StatelessWidget {
   final List<Project> projects;
   final Function(Project) onOpenProject;
   final Function(Project) onDeleteProject;
+  final Function(Project) onProjectSettings;
 
   const ProjectGrid({
     super.key,
     required this.projects,
     required this.onOpenProject,
     required this.onDeleteProject,
+    required this.onProjectSettings,
   });
 
   int _calculateDesktopCrossAxisCount(double width) {
@@ -369,6 +392,7 @@ class ProjectGrid extends StatelessWidget {
               onRename: (newName) => context
                   .read<ProjectListNotifier>()
                   .renameProject(project, newName),
+              onSettings: () => onProjectSettings(project),
             );
           },
         );

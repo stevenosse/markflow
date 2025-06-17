@@ -28,6 +28,7 @@ class ProjectActionDialog extends StatefulWidget {
   }) {
     return showDialog<ProjectActionResult>(
       context: context,
+      useRootNavigator: true,
       builder: (context) => ProjectActionDialog(
         initialAction: initialAction,
         hasExistingProjects: hasExistingProjects,

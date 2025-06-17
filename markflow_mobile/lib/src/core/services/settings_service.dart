@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:markflow/src/core/services/ssh_key_service.dart';
+import 'package:markflow/src/shared/locator.dart';
 
 class SettingsService extends ChangeNotifier {
   static const String _editorFontSizeKey = 'editor_font_size';
@@ -8,6 +10,7 @@ class SettingsService extends ChangeNotifier {
   static const String _autoSaveKey = 'auto_save';
   static const String _wordWrapKey = 'word_wrap';
   static const String _showLineNumbersKey = 'show_line_numbers';
+  static const String _defaultSshKeyPathKey = 'default_ssh_key_path';
   
   // Default values
   static const double _defaultFontSize = 14.0;
@@ -17,6 +20,10 @@ class SettingsService extends ChangeNotifier {
   static const double _fontSizeStep = 1.0;
   
   SharedPreferences? _prefs;
+  final SshKeyService _sshKeyService;
+  
+  SettingsService({SshKeyService? sshKeyService}) 
+      : _sshKeyService = sshKeyService ?? locator<SshKeyService>();
   
   // Editor settings
   double _editorFontSize = _defaultFontSize;
@@ -25,6 +32,7 @@ class SettingsService extends ChangeNotifier {
   bool _autoSave = true;
   bool _wordWrap = true;
   bool _showLineNumbers = false;
+  String? _defaultSshKeyPath;
   
   // Getters
   double get editorFontSize => _editorFontSize;
@@ -33,6 +41,8 @@ class SettingsService extends ChangeNotifier {
   bool get autoSave => _autoSave;
   bool get wordWrap => _wordWrap;
   bool get showLineNumbers => _showLineNumbers;
+  String? get defaultSshKeyPath => _defaultSshKeyPath;
+  SshKeyService get sshKeyService => _sshKeyService;
   
   double get minFontSize => _minFontSize;
   double get maxFontSize => _maxFontSize;
@@ -52,6 +62,7 @@ class SettingsService extends ChangeNotifier {
     _autoSave = _prefs!.getBool(_autoSaveKey) ?? true;
     _wordWrap = _prefs!.getBool(_wordWrapKey) ?? true;
     _showLineNumbers = _prefs!.getBool(_showLineNumbersKey) ?? false;
+    _defaultSshKeyPath = _prefs!.getString(_defaultSshKeyPathKey);
     
     notifyListeners();
   }
@@ -108,6 +119,16 @@ class SettingsService extends ChangeNotifier {
     notifyListeners();
   }
   
+  Future<void> setDefaultSshKeyPath(String? keyPath) async {
+    _defaultSshKeyPath = keyPath;
+    if (keyPath != null) {
+      await _prefs?.setString(_defaultSshKeyPathKey, keyPath);
+    } else {
+      await _prefs?.remove(_defaultSshKeyPathKey);
+    }
+    notifyListeners();
+  }
+  
   Future<void> resetToDefaults() async {
     await setEditorFontSize(_defaultFontSize);
     await setEditorLineHeight(_defaultLineHeight);
@@ -115,5 +136,6 @@ class SettingsService extends ChangeNotifier {
     await setAutoSave(true);
     await setWordWrap(true);
     await setShowLineNumbers(false);
+    await setDefaultSshKeyPath(null);
   }
 }

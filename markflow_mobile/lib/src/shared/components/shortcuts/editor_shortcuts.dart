@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:markflow/src/features/projects/logic/project_editor/project_editor_notifier.dart';
 import 'package:markflow/src/features/projects/logic/project_editor/project_editor_state.dart';
+import 'package:markflow/src/shared/components/dialogs/create_file_dialog.dart';
 import 'package:markflow/src/shared/components/dialogs/find_dialog.dart';
 import 'package:markflow/src/shared/components/dialogs/replace_dialog.dart';
 import 'package:markflow/src/shared/components/dialogs/go_to_line_dialog.dart';
@@ -34,6 +35,8 @@ class EditorShortcuts extends StatelessWidget {
   Map<ShortcutActivator, Intent> _buildShortcuts() {
     return {
       // File operations
+      const SingleActivator(LogicalKeyboardKey.keyT, meta: true, shift: true):
+          const CreateFileIntent(),
       const SingleActivator(LogicalKeyboardKey.keyS, meta: true):
           const SaveFileIntent(),
       const SingleActivator(LogicalKeyboardKey.keyS, meta: true, shift: true):
@@ -87,6 +90,9 @@ class EditorShortcuts extends StatelessWidget {
 
   Map<Type, Action<Intent>> _buildActions(BuildContext context) {
     return {
+      CreateFileIntent: CallbackAction<CreateFileIntent>(
+        onInvoke: (_) => _createFile(context),
+      ),
       SaveFileIntent: CallbackAction<SaveFileIntent>(
         onInvoke: (_) => _saveFile(),
       ),
@@ -161,6 +167,21 @@ class EditorShortcuts extends StatelessWidget {
       notifier.saveCurrentFile();
     } catch (e) {
       debugPrint('Error saving all files: $e');
+    }
+  }
+
+  void _createFile(BuildContext context) async {
+    try {
+      final fileName = await CreateFileDialog.show(
+        context: context,
+        initialPath: state.project?.path,
+      );
+      
+      if (fileName != null && fileName.isNotEmpty) {
+        notifier.createFileWithOptions(fileName: fileName);
+      }
+    } catch (e) {
+      debugPrint('Error creating file: $e');
     }
   }
 
@@ -397,6 +418,10 @@ class SaveFileIntent extends Intent {
 
 class SaveAllFilesIntent extends Intent {
   const SaveAllFilesIntent();
+}
+
+class CreateFileIntent extends Intent {
+  const CreateFileIntent();
 }
 
 class CloseTabIntent extends Intent {
