@@ -24,7 +24,7 @@ class ProjectCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BasicCard(
-      childPadding: const EdgeInsets.all(Dimens.desktopSpacing),
+      childPadding: EdgeInsets.zero,
       borderRadius: BorderRadius.circular(Dimens.desktopCardRadius),
       child: InkWell(
         onTap: onTap,
@@ -33,6 +33,7 @@ class ProjectCard extends StatelessWidget {
           constraints: const BoxConstraints(
             minHeight: Dimens.desktopProjectCardHeight,
           ),
+          padding: const EdgeInsets.all(Dimens.spacing),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -183,7 +184,8 @@ class _MenuButton extends StatelessWidget {
             alignment: Alignment.center,
             child: Icon(
               Icons.edit,
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
+              color:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
               size: Dimens.desktopIconSize,
             ),
           ),
@@ -209,7 +211,8 @@ class _MenuButton extends StatelessWidget {
           ],
           icon: Icon(
             Icons.more_vert,
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
             size: Dimens.desktopIconSize,
           ),
           constraints: BoxConstraints(
@@ -263,7 +266,8 @@ class _ProjectPath extends StatelessWidget {
     return Text(
       displayPath,
       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
           ),
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
@@ -335,7 +339,7 @@ class _LastOpenedText extends StatelessWidget {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final difference = now.difference(project.lastOpened);
-    
+
     String timeText;
     if (difference.inDays > 0) {
       timeText = '${difference.inDays}d ago';
@@ -350,7 +354,8 @@ class _LastOpenedText extends StatelessWidget {
     return Text(
       timeText,
       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
           ),
     );
   }
