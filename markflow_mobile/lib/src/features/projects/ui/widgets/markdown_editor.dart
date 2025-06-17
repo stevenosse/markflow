@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:markflow/src/core/theme/dimens.dart';
 import 'package:markflow/src/datasource/models/markdown_file.dart';
+import 'package:markflow/src/core/services/settings_service.dart';
+import 'package:markflow/src/features/projects/logic/editor/editor_controller.dart';
+import 'package:markflow/src/shared/locator.dart';
 
 class MarkdownEditor extends StatefulWidget {
   final List<MarkdownFile> openFiles;
@@ -10,6 +13,7 @@ class MarkdownEditor extends StatefulWidget {
   final ValueChanged<MarkdownFile> onFileSelected;
   final ValueChanged<MarkdownFile> onFileClose;
   final bool isLoading;
+  final EditorController? editorController;
   
   const MarkdownEditor({
     super.key,
@@ -20,6 +24,7 @@ class MarkdownEditor extends StatefulWidget {
     required this.onFileSelected,
     required this.onFileClose,
     this.isLoading = false,
+    this.editorController,
   });
   
   @override
@@ -30,6 +35,7 @@ class _MarkdownEditorState extends State<MarkdownEditor> with TickerProviderStat
   late final TextEditingController _controller;
   late final FocusNode _focusNode;
   late final ScrollController _scrollController;
+  late final SettingsService _settingsService;
   
   @override
   void initState() {
@@ -37,6 +43,14 @@ class _MarkdownEditorState extends State<MarkdownEditor> with TickerProviderStat
     _controller = TextEditingController(text: widget.content);
     _focusNode = FocusNode();
     _scrollController = ScrollController();
+    _settingsService = locator<SettingsService>();
+    
+    // Attach controllers to editor controller if provided
+    widget.editorController?.attachControllers(
+      textController: _controller,
+      focusNode: _focusNode,
+      scrollController: _scrollController,
+    );
   }
   
   @override
@@ -50,6 +64,7 @@ class _MarkdownEditorState extends State<MarkdownEditor> with TickerProviderStat
   
   @override
   void dispose() {
+    widget.editorController?.detachControllers();
     _controller.dispose();
     _focusNode.dispose();
     _scrollController.dispose();
@@ -245,20 +260,22 @@ class _MarkdownEditorState extends State<MarkdownEditor> with TickerProviderStat
 
     return Container(
       padding: const EdgeInsets.all(Dimens.editorPadding),
-      child: TextField(
-        controller: _controller,
-        focusNode: _focusNode,
-        scrollController: _scrollController,
-        maxLines: null,
-        expands: true,
-        textAlignVertical: TextAlignVertical.top,
-        style: TextStyle(
-          fontSize: Dimens.editorFontSize,
-          height: Dimens.editorLineHeight,
-          fontFamily: 'SF Mono',
-          fontFamilyFallback: const ['Monaco', 'Consolas', 'monospace'],
-          color: Theme.of(context).colorScheme.onSurface,
-        ),
+      child: ListenableBuilder(
+        listenable: _settingsService,
+        builder: (context, _) => TextField(
+           controller: _controller,
+          focusNode: _focusNode,
+          scrollController: _scrollController,
+          maxLines: null,
+          expands: true,
+          textAlignVertical: TextAlignVertical.top,
+          style: TextStyle(
+            fontSize: _settingsService.editorFontSize,
+            height: _settingsService.editorLineHeight,
+            fontFamily: 'SF Mono',
+            fontFamilyFallback: const ['Monaco', 'Consolas', 'monospace'],
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
         decoration: InputDecoration(
           hintText: 'Start writing your markdown...',
           hintStyle: TextStyle(
@@ -269,9 +286,10 @@ class _MarkdownEditorState extends State<MarkdownEditor> with TickerProviderStat
           focusedBorder: InputBorder.none,
           contentPadding: EdgeInsets.zero,
         ),
-        onChanged: widget.onContentChanged,
-        keyboardType: TextInputType.multiline,
-        textInputAction: TextInputAction.newline,
+          onChanged: widget.onContentChanged,
+          keyboardType: TextInputType.multiline,
+          textInputAction: TextInputAction.newline,
+        ),
       ),
     );
   }

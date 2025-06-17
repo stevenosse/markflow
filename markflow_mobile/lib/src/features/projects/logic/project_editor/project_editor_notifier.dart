@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:markflow/src/core/services/settings_service.dart';
 import 'package:markflow/src/datasource/models/git_models.dart';
 import 'package:markflow/src/datasource/models/project.dart';
 import 'package:markflow/src/datasource/models/markdown_file.dart';
@@ -8,6 +9,7 @@ import 'package:markflow/src/datasource/repositories/project_repository.dart';
 import 'package:markflow/src/datasource/repositories/file_repository.dart';
 import 'package:markflow/src/datasource/repositories/git_repository.dart';
 import 'package:markflow/src/features/projects/logic/project_editor/project_editor_state.dart';
+import 'package:markflow/src/features/projects/logic/editor/editor_controller.dart';
 import 'package:markflow/src/shared/locator.dart';
 import 'package:markflow/src/shared/services/app_logger.dart';
 import 'package:path/path.dart' as path;
@@ -17,7 +19,9 @@ class ProjectEditorNotifier extends ValueNotifier<ProjectEditorState> {
   final ProjectRepository _projectRepository;
   final FileRepository _fileRepository;
   final GitRepository _gitRepository;
+  final SettingsService _settingsService = locator<SettingsService>();
   final AppLogger _logger;
+  final EditorController _editorController = EditorController();
 
   StreamSubscription<List<MarkdownFile>>? _fileWatchSubscription;
   Timer? _autoSaveTimer;
@@ -32,6 +36,10 @@ class ProjectEditorNotifier extends ValueNotifier<ProjectEditorState> {
         _gitRepository = gitRepository ?? locator<GitRepository>(),
         _logger = logger ?? locator<AppLogger>(),
         super(const ProjectEditorState());
+
+  // Getters
+  EditorController get editorController => _editorController;
+  SettingsService get settingsService => _settingsService;
 
   /// Load a project for editing
   Future<void> loadProject(Project project) async {
@@ -548,10 +556,69 @@ class ProjectEditorNotifier extends ValueNotifier<ProjectEditorState> {
     }
   }
 
+  // Editor functionality methods
+  void setSearchQuery(String query) {
+    _editorController.setSearchQuery(query);
+  }
+  
+  void setGlobalSearchQuery(String query) {
+    // For now, use the same search as local search
+    // This could be enhanced to search across all files in the project
+    _editorController.setSearchQuery(query);
+  }
+  
+  Future<void> replaceInCurrentFile(String findText, String replaceText) async {
+    await _editorController.replaceInCurrentFile(findText, replaceText);
+    // Trigger content update if needed
+    if (_editorController.textController != null) {
+      final newContent = _editorController.textController!.text;
+      value = value.copyWith(currentContent: newContent);
+    }
+  }
+  
+  void goToLine(int lineNumber) {
+    _editorController.goToLine(lineNumber);
+  }
+  
+  void duplicateCurrentLine() {
+    _editorController.duplicateCurrentLine();
+    // Trigger content update
+    if (_editorController.textController != null) {
+      final newContent = _editorController.textController!.text;
+      value = value.copyWith(currentContent: newContent);
+    }
+  }
+  
+  void toggleCommentOnCurrentLine() {
+    _editorController.toggleCommentOnCurrentLine();
+    // Trigger content update
+    if (_editorController.textController != null) {
+      final newContent = _editorController.textController!.text;
+      value = value.copyWith(currentContent: newContent);
+    }
+  }
+  
+  Future<void> increaseFontSize() async {
+    await _settingsService.increaseFontSize();
+  }
+  
+  Future<void> decreaseFontSize() async {
+    await _settingsService.decreaseFontSize();
+  }
+  
+  Future<void> resetFontSize() async {
+    await _settingsService.resetFontSize();
+  }
+  
+  int getCurrentLineCount() {
+    return _editorController.getCurrentLineCount();
+  }
+
   @override
   void dispose() {
     _fileWatchSubscription?.cancel();
     _autoSaveTimer?.cancel();
+    _editorController.dispose();
 
     // Stop watching files
     if (value.project != null) {

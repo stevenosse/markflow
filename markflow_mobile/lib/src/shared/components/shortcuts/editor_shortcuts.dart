@@ -243,9 +243,7 @@ class EditorShortcuts extends StatelessWidget {
       );
 
       if (query != null && query.isNotEmpty) {
-        // Store search query for future editor integration
-        // TODO: Implement actual search highlighting when editor supports it
-        debugPrint('Find in file: $query');
+        notifier.setSearchQuery(query);
       }
     } catch (e) {
       debugPrint('Error in find dialog: $e');
@@ -260,9 +258,7 @@ class EditorShortcuts extends StatelessWidget {
       );
 
       if (query != null && query.isNotEmpty) {
-        // Store global search query for future integration
-        // TODO: Implement actual project-wide search when supported
-        debugPrint('Find in project: $query');
+        notifier.setGlobalSearchQuery(query);
       }
     } catch (e) {
       debugPrint('Error in find dialog: $e');
@@ -276,9 +272,7 @@ class EditorShortcuts extends StatelessWidget {
       );
 
       if (result != null) {
-        // Store replace operation for future editor integration
-        // TODO: Implement actual find and replace when editor supports it
-        debugPrint('Replace "${result.findText}" with "${result.replaceText}"');
+        await notifier.replaceInCurrentFile(result.findText, result.replaceText);
       }
     } catch (e) {
       debugPrint('Error in replace dialog: $e');
@@ -314,13 +308,11 @@ class EditorShortcuts extends StatelessWidget {
     try {
       final lineNumber = await GoToLineDialog.show(
         context: context,
-        maxLineNumber: state.currentFile?.content?.split('\n').length ?? 1000,
+        maxLineNumber: notifier.getCurrentLineCount(),
       );
 
       if (lineNumber != null) {
-        // Store line number for future editor integration
-        // TODO: Implement actual go-to-line when editor supports it
-        debugPrint('Go to line: $lineNumber');
+        notifier.goToLine(lineNumber);
       }
     } catch (e) {
       debugPrint('Error in go to line dialog: $e');
@@ -359,9 +351,7 @@ class EditorShortcuts extends StatelessWidget {
 
   void _duplicateLine() {
     try {
-      // Line duplication requires direct editor integration
-      // TODO: Implement when text editor controller is available
-      debugPrint('Duplicate line - requires editor integration');
+      notifier.duplicateCurrentLine();
     } catch (e) {
       debugPrint('Error duplicating line: $e');
     }
@@ -369,9 +359,7 @@ class EditorShortcuts extends StatelessWidget {
 
   void _toggleComment() {
     try {
-      // Comment toggling requires direct editor integration
-      // TODO: Implement when text editor controller is available
-      debugPrint('Toggle comment - requires editor integration');
+      notifier.toggleCommentOnCurrentLine();
     } catch (e) {
       debugPrint('Error toggling comment: $e');
     }
@@ -379,9 +367,7 @@ class EditorShortcuts extends StatelessWidget {
 
   void _zoomIn() {
     try {
-      // Zoom functionality requires theme/settings integration
-      // TODO: Implement when settings service is available
-      debugPrint('Zoom in - requires theme/settings integration');
+      notifier.increaseFontSize();
     } catch (e) {
       debugPrint('Error zooming in: $e');
     }
@@ -389,9 +375,7 @@ class EditorShortcuts extends StatelessWidget {
 
   void _zoomOut() {
     try {
-      // Zoom functionality requires theme/settings integration
-      // TODO: Implement when settings service is available
-      debugPrint('Zoom out - requires theme/settings integration');
+      notifier.decreaseFontSize();
     } catch (e) {
       debugPrint('Error zooming out: $e');
     }
@@ -399,9 +383,7 @@ class EditorShortcuts extends StatelessWidget {
 
   void _resetZoom() {
     try {
-      // Zoom reset requires theme/settings integration
-      // TODO: Implement when settings service is available
-      debugPrint('Reset zoom - requires theme/settings integration');
+      notifier.resetFontSize();
     } catch (e) {
       debugPrint('Error resetting zoom: $e');
     }
