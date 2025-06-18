@@ -1,29 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:markflow/src/core/theme/dimens.dart';
 import 'package:markflow/src/datasource/models/markdown_file.dart';
+import 'package:markflow/src/datasource/repositories/file_repository.dart';
 import 'package:markflow/src/shared/components/dialogs/confirmation_dialog.dart';
 import 'package:markflow/src/shared/components/dialogs/create_file_dialog.dart';
 import 'package:markflow/src/shared/components/dialogs/create_folder_dialog.dart';
 import 'package:markflow/src/shared/components/popovers/rename_popover.dart';
+import 'package:markflow/src/shared/locator.dart';
 
 class FileTreePanel extends StatefulWidget {
   final List<MarkdownFile> files;
   final MarkdownFile? selectedFile;
   final Function(MarkdownFile) onFileSelected;
-  final Function(MarkdownFile) onFileDeleted;
   final Function(MarkdownFile, String) onFileRenamed;
-  final Function(String) onFolderCreated;
+  final Function(MarkdownFile) onFileDeleted;
   final Future<void> Function(String) onFileCreated;
+  final Function(String) onFolderCreated;
 
   const FileTreePanel({
     super.key,
     required this.files,
-    required this.selectedFile,
+    this.selectedFile,
     required this.onFileSelected,
-    required this.onFileDeleted,
     required this.onFileRenamed,
-    required this.onFolderCreated,
+    required this.onFileDeleted,
     required this.onFileCreated,
+    required this.onFolderCreated,
   });
 
   @override
@@ -31,7 +34,9 @@ class FileTreePanel extends StatefulWidget {
 }
 
 class _FileTreePanelState extends State<FileTreePanel> {
-  final Set<String> _expandedFolders = {};
+  final Set<String> _expandedFolders = <String>{};
+  final Set<String> _selectedFiles = <String>{};
+  bool _isMultiSelectMode = false;
 
   @override
   Widget build(BuildContext context) {
@@ -40,102 +45,92 @@ class _FileTreePanelState extends State<FileTreePanel> {
         color: Theme.of(context).colorScheme.surface,
         border: Border(
           right: BorderSide(
-            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.12),
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.08),
             width: 1,
           ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(2, 0),
-          ),
-        ],
       ),
       child: Column(
         children: [
           _DesktopFileTreeHeader(
             onFileCreated: widget.onFileCreated,
             onFolderCreated: widget.onFolderCreated,
+            isMultiSelectMode: _isMultiSelectMode,
+            selectedFilesCount: _selectedFiles.length,
+            onToggleMultiSelect: _toggleMultiSelectMode,
+            onCopySelectedFiles: _copySelectedFiles,
+            onClearSelection: _clearSelection,
           ),
           Expanded(
-            child: _buildFileTree(context),
+            child: widget.files.isEmpty
+                ? _DesktopEmptyState()
+                : _buildFileTreeStructure(),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFileTree(BuildContext context) {
-    if (widget.files.isEmpty) {
-      return _DesktopEmptyState();
+  Widget _buildFileTreeStructure() {
+    // Group files by directory structure
+    final Map<String, dynamic> fileTree = {};
+    
+    for (final file in widget.files) {
+      final pathParts = file.relativePath.split('/');
+      Map<String, dynamic> currentLevel = fileTree;
+      
+      // Navigate through directory structure
+      for (int i = 0; i < pathParts.length - 1; i++) {
+        final part = pathParts[i];
+        currentLevel[part] ??= <String, dynamic>{};
+        currentLevel = currentLevel[part] as Map<String, dynamic>;
+      }
+      
+      // Add the file at the final level
+      final fileName = pathParts.last;
+      currentLevel[fileName] = file;
     }
 
-    final fileTree = _buildFileTreeStructure(widget.files);
-
-    return ListView(
-      padding: EdgeInsets.symmetric(
-        vertical: Dimens.desktopSpacing / 2,
-        horizontal: Dimens.desktopFileTreePadding,
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(Dimens.desktopFileTreePadding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: _buildTreeNodes(context, fileTree, 0),
       ),
-      children: _buildTreeNodes(context, fileTree, 0),
     );
   }
 
-  Map<String, dynamic> _buildFileTreeStructure(List<MarkdownFile> files) {
-    final tree = <String, dynamic>{};
-
-    for (final file in files) {
-      final parts = file.relativePath.split('/');
-      Map<String, dynamic> current = tree;
-
-      for (int i = 0; i < parts.length; i++) {
-        final part = parts[i];
-
-        if (i == parts.length - 1) {
-          // This is a file
-          current[part] = file;
-        } else {
-          // This is a folder
-          current[part] ??= <String, dynamic>{};
-          current = current[part] as Map<String, dynamic>;
-        }
-      }
-    }
-
-    return tree;
-  }
-
-  List<Widget> _buildTreeNodes(
-      BuildContext context, Map<String, dynamic> tree, int depth) {
-    final nodes = <Widget>[];
-    final sortedKeys = tree.keys.toList()
-      ..sort((a, b) {
-        final aIsFile = tree[a] is MarkdownFile;
-        final bIsFile = tree[b] is MarkdownFile;
-
-        if (aIsFile && !bIsFile) return 1;
-        if (!aIsFile && bIsFile) return -1;
-
-        return a.compareTo(b);
-      });
-
-    for (final key in sortedKeys) {
-      final value = tree[key];
-
+  List<Widget> _buildTreeNodes(BuildContext context, Map<String, dynamic> nodes, int depth) {
+    final List<Widget> widgets = [];
+    
+    // Sort entries: folders first, then files
+    final entries = nodes.entries.toList();
+    entries.sort((a, b) {
+      final aIsFile = a.value is MarkdownFile;
+      final bIsFile = b.value is MarkdownFile;
+      
+      if (aIsFile && !bIsFile) return 1;
+      if (!aIsFile && bIsFile) return -1;
+      return a.key.compareTo(b.key);
+    });
+    
+    for (final entry in entries) {
+      final name = entry.key;
+      final value = entry.value;
+      
       if (value is MarkdownFile) {
-        nodes.add(_buildFileNode(context, key, value, depth));
+        widgets.add(_buildFileNode(context, name, value, depth));
       } else if (value is Map<String, dynamic>) {
-        nodes.add(_buildFolderNode(context, key, value, depth));
+        widgets.add(_buildFolderNode(context, name, value, depth));
       }
     }
-
-    return nodes;
+    
+    return widgets;
   }
 
-  Widget _buildFileNode(
-      BuildContext context, String name, MarkdownFile file, int depth) {
+  Widget _buildFileNode(BuildContext context, String name, MarkdownFile file, int depth) {
     final isSelected = widget.selectedFile?.id == file.id;
+    final isMultiSelected = _selectedFiles.contains(file.id);
 
     return Container(
       margin: EdgeInsets.only(
@@ -147,18 +142,26 @@ class _FileTreePanelState extends State<FileTreePanel> {
         borderRadius: BorderRadius.circular(Dimens.desktopRadius),
         color: isSelected
             ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.08)
-            : null,
+            : isMultiSelected
+                ? Theme.of(context).colorScheme.secondary.withValues(alpha: 0.08)
+                : null,
         border: isSelected
             ? Border.all(
                 color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                 width: 1,
               )
-            : null,
+            : isMultiSelected
+                ? Border.all(
+                    color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.3),
+                    width: 1,
+                  )
+                : null,
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => widget.onFileSelected(file),
+          onTap: () => _handleFileTap(file),
+          onLongPress: () => _handleFileLongPress(file),
           borderRadius: BorderRadius.circular(Dimens.desktopRadius),
           hoverColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.04),
           child: Padding(
@@ -168,13 +171,26 @@ class _FileTreePanelState extends State<FileTreePanel> {
             ),
             child: Row(
               children: [
+                if (_isMultiSelectMode)
+                  Container(
+                    width: 20,
+                    height: 20,
+                    margin: const EdgeInsets.only(right: 4),
+                    child: Checkbox(
+                      value: isMultiSelected,
+                      onChanged: (value) => _toggleFileSelection(file.id),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
                 Container(
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
                     color: isSelected
                         ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
-                        : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                        : isMultiSelected
+                            ? Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1)
+                            : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Icon(
@@ -182,7 +198,9 @@ class _FileTreePanelState extends State<FileTreePanel> {
                     size: Dimens.desktopFileTreeIconSize,
                     color: isSelected
                         ? Theme.of(context).colorScheme.primary
-                        : _getFileIconColor(context, file.name),
+                        : isMultiSelected
+                            ? Theme.of(context).colorScheme.secondary
+                            : _getFileIconColor(context, file.name),
                   ),
                 ),
                 const SizedBox(width: Dimens.desktopSpacing / 2),
@@ -192,8 +210,10 @@ class _FileTreePanelState extends State<FileTreePanel> {
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: isSelected
                               ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.onSurface,
-                          fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
+                              : isMultiSelected
+                                  ? Theme.of(context).colorScheme.secondary
+                                  : Theme.of(context).colorScheme.onSurface,
+                          fontWeight: (isSelected || isMultiSelected) ? FontWeight.w500 : FontWeight.w400,
                           fontSize: 13,
                           letterSpacing: 0.1,
                         ),
@@ -212,11 +232,12 @@ class _FileTreePanelState extends State<FileTreePanel> {
                       ),
                     ),
                   ),
-                _DesktopFileOptionsButton(
-                  file: file,
-                  onFileRenamed: (file, newName) => widget.onFileRenamed(file, newName),
-                  onDelete: () => _showDeleteFileDialog(context, file),
-                ),
+                if (!_isMultiSelectMode)
+                  _DesktopFileOptionsButton(
+                    file: file,
+                    onFileRenamed: (file, newName) => widget.onFileRenamed(file, newName),
+                    onDelete: () => _showDeleteFileDialog(context, file),
+                  ),
               ],
             ),
           ),
@@ -352,6 +373,101 @@ class _FileTreePanelState extends State<FileTreePanel> {
     }
   }
 
+  void _handleFileTap(MarkdownFile file) {
+    if (_isMultiSelectMode) {
+      _toggleFileSelection(file.id);
+    } else {
+      widget.onFileSelected(file);
+    }
+  }
+
+  void _handleFileLongPress(MarkdownFile file) {
+    if (!_isMultiSelectMode) {
+      setState(() {
+        _isMultiSelectMode = true;
+        _selectedFiles.add(file.id);
+      });
+    }
+  }
+
+  void _toggleFileSelection(String fileId) {
+    setState(() {
+      if (_selectedFiles.contains(fileId)) {
+        _selectedFiles.remove(fileId);
+      } else {
+        _selectedFiles.add(fileId);
+      }
+    });
+  }
+
+  void _toggleMultiSelectMode() {
+    setState(() {
+      _isMultiSelectMode = !_isMultiSelectMode;
+      if (!_isMultiSelectMode) {
+        _selectedFiles.clear();
+      }
+    });
+  }
+
+  void _clearSelection() {
+    setState(() {
+      _selectedFiles.clear();
+      _isMultiSelectMode = false;
+    });
+  }
+
+  void _copySelectedFiles() async {
+    if (_selectedFiles.isEmpty) return;
+
+    final selectedFilesList = widget.files
+        .where((file) => _selectedFiles.contains(file.id))
+        .toList();
+
+    final StringBuffer buffer = StringBuffer();
+    
+    // Import the file repository to load content
+    final fileRepository = locator<FileRepository>();
+    
+    for (int i = 0; i < selectedFilesList.length; i++) {
+      final file = selectedFilesList[i];
+      buffer.writeln('=== ${file.name} ===');
+      
+      try {
+        // Load the file content if not already loaded
+        String? content = file.content;
+        if (content == null || content.isEmpty) {
+          final loadedFile = await fileRepository.getFile(file.absolutePath);
+          content = loadedFile?.content;
+        }
+        
+        if (content != null && content.isNotEmpty) {
+          buffer.writeln(content);
+        } else {
+          buffer.writeln('[File content could not be loaded]');
+        }
+      } catch (e) {
+        buffer.writeln('[Error loading file: $e]');
+      }
+      
+      if (i < selectedFilesList.length - 1) {
+        buffer.writeln('\n');
+      }
+    }
+
+    await Clipboard.setData(ClipboardData(text: buffer.toString()));
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Copied ${selectedFilesList.length} file(s) to clipboard'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+    
+    _clearSelection();
+  }
+
   void _showDeleteFileDialog(BuildContext context, MarkdownFile file) async {
     final confirmed = await ConfirmationDialog.show(
       context: context,
@@ -370,10 +486,20 @@ class _FileTreePanelState extends State<FileTreePanel> {
 class _DesktopFileTreeHeader extends StatelessWidget {
   final Future<void> Function(String) onFileCreated;
   final Function(String) onFolderCreated;
+  final bool isMultiSelectMode;
+  final int selectedFilesCount;
+  final VoidCallback onToggleMultiSelect;
+  final VoidCallback onCopySelectedFiles;
+  final VoidCallback onClearSelection;
 
   const _DesktopFileTreeHeader({
     required this.onFileCreated,
     required this.onFolderCreated,
+    required this.isMultiSelectMode,
+    required this.selectedFilesCount,
+    required this.onToggleMultiSelect,
+    required this.onCopySelectedFiles,
+    required this.onClearSelection,
   });
 
   @override
@@ -411,7 +537,7 @@ class _DesktopFileTreeHeader extends StatelessWidget {
           const SizedBox(width: Dimens.desktopSpacing / 2),
           Expanded(
             child: Text(
-              'Files',
+              isMultiSelectMode ? '$selectedFilesCount selected' : 'Files',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).colorScheme.onSurface,
@@ -420,10 +546,32 @@ class _DesktopFileTreeHeader extends StatelessWidget {
                   ),
             ),
           ),
-          _DesktopAddButton(
-            onFileCreated: onFileCreated,
-            onFolderCreated: onFolderCreated,
-          ),
+          if (isMultiSelectMode) ...[
+            if (selectedFilesCount > 0)
+              IconButton(
+                onPressed: onCopySelectedFiles,
+                icon: const Icon(Icons.copy),
+                tooltip: 'Copy selected files content',
+                iconSize: Dimens.desktopFileTreeIconSize,
+              ),
+            IconButton(
+              onPressed: onClearSelection,
+              icon: const Icon(Icons.close),
+              tooltip: 'Exit multi-select mode',
+              iconSize: Dimens.desktopFileTreeIconSize,
+            ),
+          ] else ...[
+            IconButton(
+              onPressed: onToggleMultiSelect,
+              icon: const Icon(Icons.checklist),
+              tooltip: 'Multi-select mode',
+              iconSize: Dimens.desktopFileTreeIconSize,
+            ),
+            _DesktopAddButton(
+              onFileCreated: onFileCreated,
+              onFolderCreated: onFolderCreated,
+            ),
+          ],
         ],
       ),
     );
