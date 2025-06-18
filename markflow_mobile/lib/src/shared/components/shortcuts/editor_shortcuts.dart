@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:markflow/src/features/projects/logic/project_editor/project_editor_notifier.dart';
 import 'package:markflow/src/features/projects/logic/project_editor/project_editor_state.dart';
 import 'package:markflow/src/shared/components/dialogs/create_file_dialog.dart';
+import 'package:markflow/src/shared/components/dialogs/create_folder_dialog.dart';
 import 'package:markflow/src/shared/components/dialogs/find_dialog.dart';
 import 'package:markflow/src/shared/components/dialogs/replace_dialog.dart';
 import 'package:markflow/src/shared/components/dialogs/go_to_line_dialog.dart';
@@ -35,8 +36,10 @@ class EditorShortcuts extends StatelessWidget {
   Map<ShortcutActivator, Intent> _buildShortcuts() {
     return {
       // File operations
-      const SingleActivator(LogicalKeyboardKey.keyT, meta: true, shift: true):
+      const SingleActivator(LogicalKeyboardKey.keyN, meta: true):
           const CreateFileIntent(),
+      const SingleActivator(LogicalKeyboardKey.keyN, meta: true, shift: true):
+          const CreateFolderIntent(),
       const SingleActivator(LogicalKeyboardKey.keyS, meta: true):
           const SaveFileIntent(),
       const SingleActivator(LogicalKeyboardKey.keyS, meta: true, shift: true):
@@ -92,6 +95,9 @@ class EditorShortcuts extends StatelessWidget {
     return {
       CreateFileIntent: CallbackAction<CreateFileIntent>(
         onInvoke: (_) => _createFile(context),
+      ),
+      CreateFolderIntent: CallbackAction<CreateFolderIntent>(
+        onInvoke: (_) => _createFolder(context),
       ),
       SaveFileIntent: CallbackAction<SaveFileIntent>(
         onInvoke: (_) => _saveFile(),
@@ -179,6 +185,21 @@ class EditorShortcuts extends StatelessWidget {
       
       if (fileName != null && fileName.isNotEmpty) {
         notifier.createFileWithOptions(fileName: fileName);
+      }
+    } catch (e) {
+        // Error handled silently
+      }
+  }
+
+  void _createFolder(BuildContext context) async {
+    try {
+      final folderName = await CreateFolderDialog.show(
+        context: context,
+        initialPath: state.project?.path,
+      );
+      
+      if (folderName != null && folderName.isNotEmpty) {
+        notifier.createFolder(folderName);
       }
     } catch (e) {
         // Error handled silently
@@ -422,6 +443,10 @@ class SaveAllFilesIntent extends Intent {
 
 class CreateFileIntent extends Intent {
   const CreateFileIntent();
+}
+
+class CreateFolderIntent extends Intent {
+  const CreateFolderIntent();
 }
 
 class CloseTabIntent extends Intent {

@@ -146,18 +146,6 @@ class EditorAppBar extends StatelessWidget implements PreferredSizeWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      width: 3,
-                      height: 3,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.4),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: Dimens.halfSpacing),
                     Text(
                       selectedFile!.name,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -326,7 +314,7 @@ class EditorAppBar extends StatelessWidget implements PreferredSizeWidget {
           tooltip: 'New Folder',
           onPressed: onNewFolder,
         ),
-        
+
         // Project settings button
         if (onProjectSettings != null) ...[
           const SizedBox(width: Dimens.halfSpacing),

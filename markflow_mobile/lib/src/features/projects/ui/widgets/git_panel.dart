@@ -501,7 +501,7 @@ class _GitPanelState extends State<GitPanel> with TickerProviderStateMixin {
           const SizedBox(height: Dimens.halfSpacing),
           Row(
             children: [
-              const SizedBox(width: 16), // Align with commit dot
+              const SizedBox(width: Dimens.halfSpacing), // Align with commit dot
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: Dimens.halfSpacing,
